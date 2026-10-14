@@ -38,14 +38,17 @@ both the chat model and the guardrail classifier, replacing `ChatOllama`.
   is what an empty/placeholder key correctly fails against.
 - **Requirements**: `langchain-ollama` → `langchain-openrouter`.
 - The two Ollama-only constructor args (`format="json"`, `keep_alive`) are
-  dropped. Interim guardrail JSON is prompt-instructed + parsed by the tolerant
-  `extract_json`; structured output via `with_structured_output` is the next
-  step now that the backend supports it.
+  dropped. Guardrails now use native **structured output**
+  (`with_structured_output`) as the preferred path, with the tolerant
+  `extract_json` (prompt-instructed JSON) kept as a **fallback** for when a
+  model does not honour the schema — so the ADR 0001 JSON-anchoring failure
+  class cannot recur, and fail-open still holds if both paths are down.
 
 ## Consequences
 
-- Guardrails can use native structured output (planned in ADR 0003's follow-up);
-  `ChatOpenRouter` supports tool calling + structured output per its docs.
+- Guardrails use native structured output (implemented here), with structured
+  JSON as the preferred path and a raw-JSON fallback — `ChatOpenRouter` supports
+  tool calling + structured output per its docs.
 - Live runs now **require** a key and make network calls; the offline "no keys"
   claim is gone. Free-tier limits apply: ~20 requests/min, and the `:free`
   models are capped (50/day untopped, 1000/day after a one-time $10 credit) —

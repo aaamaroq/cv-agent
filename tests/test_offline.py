@@ -18,16 +18,37 @@ from cv_chat import guardrails, prompts  # noqa: E402
 
 
 class FakeLLM:
-    """Stand-in for ChatOpenRouter: returns canned content or raises."""
+    """Stand-in for ChatOpenRouter. Supports both the structured path
+    (``with_structured_output``) and the raw ``invoke`` fallback, and records
+    which one was used."""
 
-    def __init__(self, content=None, error=None):
+    def __init__(self, content=None, error=None, structured=None, structured_error=None):
         self._content = content
         self._error = error
+        self._structured = structured
+        self._structured_error = structured_error
+        self.raw_called = False
+        self.structured_called = False
 
     def invoke(self, *_args, **_kwargs):
+        self.raw_called = True
         if self._error:
             raise self._error
         return SimpleNamespace(content=self._content)
+
+    def with_structured_output(self, schema):
+        outer = self
+
+        class _Chain:
+            def invoke(self, *_a, **_k):
+                outer.structured_called = True
+                if outer._structured_error:
+                    raise outer._structured_error
+                result = outer._structured
+                return result if isinstance(result, schema) else None
+
+        return _Chain()
+
 
 
 class ExtractJsonTests(unittest.TestCase):
@@ -101,6 +122,36 @@ class ClassifyInputTests(unittest.TestCase):
     def test_fail_open_on_error(self):
         llm = FakeLLM(error=ConnectionError())
         self.assertEqual(guardrails.classify_input(llm, "hola"), ("ok", "hola"))
+
+
+class StructuredOutputTests(unittest.TestCase):
+    """The native structured path (ChatOpenRouter.with_structured_output)."""
+
+    def test_check_output_uses_structured_when_available(self):
+        verdict = guardrails.OutputCheck(ok=False, reason="overclaim: PhD")
+        llm = FakeLLM(structured=verdict)
+        self.assertEqual(guardrails.check_output(llm, "q", "a", "src"), (False, "overclaim: PhD"))
+        self.assertTrue(llm.structured_called)
+        self.assertFalse(llm.raw_called)  # fallback must not run when structured succeeds
+
+    def test_classify_input_uses_structured_when_available(self):
+        verdict = guardrails.InputVerdict(verdict="loaded", neutral_question="¿Es adecuado? ")
+        llm = FakeLLM(structured=verdict)
+        self.assertEqual(guardrails.classify_input(llm, "hostil"), ("loaded", "¿Es adecuado?"))
+        self.assertFalse(llm.raw_called)
+
+    def test_structured_failure_falls_back_to_raw(self):
+        llm = FakeLLM(
+            structured_error=RuntimeError("schema unsupported"),
+            content='{"verdict": "abuse", "neutral_question": ""}',
+        )
+        self.assertEqual(guardrails.classify_input(llm, "insulto"), ("abuse", ""))
+        self.assertTrue(llm.structured_called)
+        self.assertTrue(llm.raw_called)  # fallback used after structured errored
+
+    def test_both_paths_down_fails_open(self):
+        llm = FakeLLM(structured_error=RuntimeError("boom"), error=ConnectionError())
+        self.assertEqual(guardrails.check_output(llm, "q", "a", "src"), (True, ""))
 
 
 class SourceOfTruthTests(unittest.TestCase):

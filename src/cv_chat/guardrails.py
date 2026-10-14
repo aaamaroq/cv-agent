@@ -11,8 +11,23 @@ import re
 
 from langchain_core.messages import BaseMessage
 from langchain_openrouter import ChatOpenRouter
+from pydantic import BaseModel, Field
 
 INPUT_VERDICTS = ("ok", "loaded", "abuse", "injection")
+
+
+class InputVerdict(BaseModel):
+    """Structured shape for the input guardrail classifier."""
+
+    verdict: str = Field(description="one of: ok, loaded, abuse, injection")
+    neutral_question: str = Field(description="neutral rewrite, verbatim for ok, empty for abuse/injection")
+
+
+class OutputCheck(BaseModel):
+    """Structured shape for the output guardrail critic."""
+
+    ok: bool = Field(description="false only on a clear violation")
+    reason: str = Field(description="short reason when ok is false, else empty")
 
 DEFLECT_MESSAGE = (
     "Let's keep this professional — I'm here to answer questions about "
@@ -203,9 +218,23 @@ def _ask_json(llm: ChatOpenRouter, system: str, user: str) -> dict | None:
     return extract_json(message_text(response))
 
 
+def _ask_structured(llm: ChatOpenRouter, schema, system: str, user: str) -> dict | None:
+    """Preferred path: native structured output. Falls back to ``None`` on any
+    failure (unsupported schema, network, bad model) so the caller can drop to
+    ``_ask_json`` and stay fail-open."""
+    try:
+        result = llm.with_structured_output(schema).invoke([("system", system), ("human", user)])
+    except Exception:  # noqa: BLE001
+        return None
+    if isinstance(result, schema):
+        return result.model_dump()
+    return None
+
+
 def classify_input(llm: ChatOpenRouter, message: str) -> tuple[str, str]:
     """Return ``(verdict, neutral_question)``; fail-open to ``("ok", message)``."""
-    data = _ask_json(llm, INPUT_SYSTEM_PROMPT, message)
+    data = _ask_structured(llm, InputVerdict, INPUT_SYSTEM_PROMPT, message) or \
+        _ask_json(llm, INPUT_SYSTEM_PROMPT, message)
     if not data:
         return "ok", message
     verdict = data.get("verdict")
@@ -233,7 +262,8 @@ def check_output(
         f"User question:\n{question}\n\n"
         f"Assistant reply:\n{answer}"
     )
-    data = _ask_json(llm, OUTPUT_SYSTEM_PROMPT, user)
+    data = _ask_structured(llm, OutputCheck, OUTPUT_SYSTEM_PROMPT, user) or \
+        _ask_json(llm, OUTPUT_SYSTEM_PROMPT, user)
     if not data or not isinstance(data.get("ok"), bool):
         return True, ""
     reason = data.get("reason")
