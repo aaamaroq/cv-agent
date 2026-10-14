@@ -75,6 +75,8 @@ change.
 - Frontend: `cd web && npm run dev`
 - A local Ollama must be reachable at `OLLAMA_HOST` for live runs; unit-style
   graph construction does not need it.
+- Offline tests (no LLM, stdlib `unittest`):
+  `PYTHONPATH=src .venv/bin/python -m unittest discover -s tests`
 
 ## Learned preferences
 
