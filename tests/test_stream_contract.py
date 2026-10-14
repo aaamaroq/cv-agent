@@ -54,9 +54,9 @@ def run_scenario(message, verdict="ok", neutral="n/a", rejects=0):
         g = graph_mod.build_graph(get_settings())
         config = {"configurable": {"thread_id": f"t-{abs(hash((message, verdict, rejects)))}-{state['out']}"}}
         tokens, restarts = [], 0
-        for mode, data in g.stream(
+        for _namespace, mode, data in g.stream(
             {"messages": [HumanMessage(message)]}, config,
-            stream_mode=["messages", "updates"],
+            stream_mode=["messages", "updates"], subgraphs=True,
         ):
             if mode == "updates":
                 update = data.get("output_guardrail")
@@ -99,10 +99,12 @@ class StreamContractTests(unittest.TestCase):
         self.assertEqual([n for n, _ in tokens], ["chatbot", "chatbot", "fallback"])
         self.assertTrue(tokens[-1][1].startswith(guardrails.FALLBACK_MESSAGE[:40]))
 
-    def test_restart_signal_is_keyed_at_top_level(self):
-        # The exact shape server.py reads: an update whose top-level key is
-        # "output_guardrail" carrying output_ok False. If a refactor nests this
-        # under a subgraph name, this test fails -> the SSE restart would break.
+    def test_restart_surfaces_via_subgraph_stream(self):
+        # server.py + the probe read the output_guardrail restart signal from
+        # updates while streaming with subgraphs=True. The whole turn now lives
+        # in an "agent" subgraph, so the signal surfaces under a nested
+        # namespace (see tests); the consumer must iterate the subgraph tuples
+        # or it silently loses the restart.
         tokens, restarts = run_scenario("Kafka", rejects=1)
         self.assertGreaterEqual(restarts, 1)
 

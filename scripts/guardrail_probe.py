@@ -127,8 +127,9 @@ def run_case(graph, prompt, thread_id):
     config = {"configurable": {"thread_id": thread_id}}
     verdict, neutral, restarts = None, None, 0
     start = time.time()
-    for update in graph.stream(
-        {"messages": [HumanMessage(prompt)]}, config, stream_mode="updates"
+    for _namespace, update in graph.stream(
+        {"messages": [HumanMessage(prompt)]}, config,
+        stream_mode="updates", subgraphs=True,
     ):
         for node, data in update.items():
             if not isinstance(data, dict):

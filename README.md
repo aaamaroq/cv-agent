@@ -53,7 +53,7 @@ src/cv_chat/
   config.py              # settings
   prompts.py             # loads cv.md + docs/PROJECT.md into the system prompt
   guardrails.py          # input/output guardrail prompts + checks
-  graph.py               # LangGraph StateGraph (guardrail nodes + checkpointer)
+  graph.py               # LangGraph: guardrail nodes + agent subgraph + checkpointer
   server.py              # FastAPI: POST /api/chat (SSE streaming)
 web/                     # Vite + React + Tailwind UI
 ```

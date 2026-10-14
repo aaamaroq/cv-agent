@@ -53,10 +53,11 @@ def chat(req: ChatRequest) -> StreamingResponse:
 
     def event_stream() -> Iterator[str]:
         try:
-            for mode, data in graph.stream(
+            for _namespace, mode, data in graph.stream(
                 {"messages": [HumanMessage(req.message)]},
                 config,
                 stream_mode=["messages", "updates"],
+                subgraphs=True,
             ):
                 if mode == "updates":
                     update = data.get("output_guardrail")

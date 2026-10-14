@@ -112,8 +112,8 @@ def build_brief() -> str:
         "",
         "## AI-engineering signals in this repo",
         "",
-        "- Multi-node LLM orchestration with LangGraph (StateGraph + "
-        "conditional routing + a checkpointer).",
+        "- Multi-node LLM orchestration with LangGraph (a compiled agent "
+        "subgraph + conditional routing + a checkpointer on the parent).",
         "- Layered input/output guardrails with a separate classifier model "
         "(structured JSON output, fail-open) — see the ADR below.",
         "- Adversarial robustness: prompt-injection and leading-question "

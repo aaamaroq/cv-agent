@@ -8,7 +8,7 @@ An AI-powered portfolio chatbot: a LangGraph agent that answers recruiters' ques
 
 ## AI-engineering signals in this repo
 
-- Multi-node LLM orchestration with LangGraph (StateGraph + conditional routing + a checkpointer).
+- Multi-node LLM orchestration with LangGraph (a compiled agent subgraph + conditional routing + a checkpointer on the parent).
 - Layered input/output guardrails with a separate classifier model (structured JSON output, fail-open) — see the ADR below.
 - Adversarial robustness: prompt-injection and leading-question handling, verified by an evaluation harness (`scripts/guardrail_probe.py`).
 - Token streaming over Server-Sent Events from FastAPI to a React UI.
@@ -58,3 +58,4 @@ An AI-powered portfolio chatbot: a LangGraph agent that answers recruiters' ques
 - **ADR 0002: Derived project memory and a grounded output critic** (Accepted · 2026-10-14)
 - **ADR 0003: Positioning is measured, not gated; subgraph extraction deferred** (Accepted · 2026-10-14)
 - **ADR 0004: Migrate inference from local Ollama to OpenRouter** (Accepted · 2026-10-14)
+- **ADR 0005: Wrap the turn in a compiled agent subgraph** (Accepted · 2026-10-14)

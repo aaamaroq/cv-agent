@@ -140,4 +140,14 @@ def build_graph(settings: Settings) -> CompiledStateGraph:
     builder.add_conditional_edges("output_guardrail", route_output)
     builder.add_edge("deflect", END)
     builder.add_edge("fallback", END)
-    return builder.compile(checkpointer=MemorySaver())
+    agent = builder.compile()
+
+    # The whole turn is a reusable subgraph; the parent graph is a thin wrapper
+    # that owns the checkpointer. server.py must stream with subgraphs=True so
+    # the inner chatbot/deflect/fallback nodes (and the output_guardrail retry
+    # signal) keep surfacing — see tests/test_stream_contract.py.
+    parent = StateGraph(State)
+    parent.add_node("agent", agent)
+    parent.add_edge(START, "agent")
+    parent.add_edge("agent", END)
+    return parent.compile(checkpointer=MemorySaver())

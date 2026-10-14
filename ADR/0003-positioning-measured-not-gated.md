@@ -1,6 +1,7 @@
 # ADR 0003: Positioning is measured, not gated; subgraph extraction deferred
 
-- **Status:** Accepted
+- **Status:** Accepted (positioning decision); the "subgraph extraction deferred"
+  clause is superseded by ADR 0005
 - **Date:** 2026-10-14
 
 ## Context
