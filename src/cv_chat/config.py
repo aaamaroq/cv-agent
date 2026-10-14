@@ -10,6 +10,7 @@ CV_PATH = REPO_ROOT / "cv.md"
 @dataclass(frozen=True)
 class Settings:
     model: str
+    guardrail_model: str
     ollama_host: str
     temperature: float
 
@@ -18,6 +19,7 @@ class Settings:
 def get_settings() -> Settings:
     return Settings(
         model=os.getenv("CV_MODEL", "gemma3:4b"),
+        guardrail_model=os.getenv("CV_GUARDRAIL_MODEL", "gemma3:1b"),
         ollama_host=os.getenv("OLLAMA_HOST", "http://localhost:11434"),
         temperature=float(os.getenv("CV_TEMPERATURE", "0.3")),
     )

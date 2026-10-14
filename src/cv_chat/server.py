@@ -20,6 +20,8 @@ app.add_middleware(
 
 graph = build_graph(get_settings())
 
+STREAMING_NODES = {"chatbot", "deflect", "fallback"}
+
 
 class ChatRequest(BaseModel):
     message: str = Field(min_length=1, max_length=4000)
@@ -41,7 +43,8 @@ def _sse(payload: dict) -> str:
 
 @app.get("/api/health")
 def health() -> dict:
-    return {"status": "ok", "model": get_settings().model}
+    settings = get_settings()
+    return {"status": "ok", "model": settings.model, "guardrail_model": settings.guardrail_model}
 
 
 @app.post("/api/chat")
@@ -50,12 +53,18 @@ def chat(req: ChatRequest) -> StreamingResponse:
 
     def event_stream() -> Iterator[str]:
         try:
-            for chunk, metadata in graph.stream(
+            for mode, data in graph.stream(
                 {"messages": [HumanMessage(req.message)]},
                 config,
-                stream_mode="messages",
+                stream_mode=["messages", "updates"],
             ):
-                if metadata.get("langgraph_node") != "chatbot":
+                if mode == "updates":
+                    update = data.get("output_guardrail")
+                    if isinstance(update, dict) and update.get("output_ok") is False:
+                        yield _sse({"restart": True})
+                    continue
+                chunk, metadata = data
+                if metadata.get("langgraph_node") not in STREAMING_NODES:
                     continue
                 text = _chunk_text(chunk)
                 if text:

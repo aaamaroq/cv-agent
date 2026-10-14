@@ -46,6 +46,15 @@ export default function Chat() {
     })
   }
 
+  function restartAssistant() {
+    setMessages((prev) => {
+      const next = [...prev]
+      const last = next[next.length - 1]
+      if (last?.role === 'assistant') next[next.length - 1] = { ...last, content: '' }
+      return next
+    })
+  }
+
   async function send(text) {
     const message = text.trim()
     if (!message || busy) return
@@ -81,6 +90,7 @@ export default function Chat() {
           if (!line.startsWith('data: ')) continue
           const payload = JSON.parse(line.slice(6))
           if (payload.error) throw new Error(payload.error)
+          if (payload.restart) restartAssistant()
           if (payload.token) appendToken(payload.token)
         }
       }
