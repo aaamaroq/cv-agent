@@ -1,5 +1,5 @@
 langchain
-langchain-ollama
+langchain-openrouter
 langgraph
 fastapi
 uvicorn[standard]

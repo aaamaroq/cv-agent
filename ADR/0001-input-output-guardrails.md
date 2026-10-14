@@ -1,6 +1,6 @@
 # ADR 0001: Input and output guardrails as graph nodes
 
-- **Status:** Accepted
+- **Status:** Accepted (guardrail design); provider-specific decisions superseded by ADR 0004
 - **Date:** 2026-10-07
 
 ## Context

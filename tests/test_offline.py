@@ -1,6 +1,6 @@
 """Offline safety net for the load-bearing pieces.
 
-These exercise pure logic only — no Ollama, no network. Run with the src
+These exercise pure logic only — no network, no LLM provider. Run with the src
 layout the app uses:
 
     PYTHONPATH=src .venv/bin/python -m unittest discover -s tests -v
@@ -18,7 +18,7 @@ from cv_chat import guardrails, prompts  # noqa: E402
 
 
 class FakeLLM:
-    """Stand-in for ChatOllama: returns canned content or raises."""
+    """Stand-in for ChatOpenRouter: returns canned content or raises."""
 
     def __init__(self, content=None, error=None):
         self._content = content
@@ -66,7 +66,7 @@ class CheckOutputTests(unittest.TestCase):
         self.assertEqual(guardrails.check_output(llm, "q", "a", "src"), (True, ""))
 
     def test_fail_open_on_llm_error(self):
-        llm = FakeLLM(error=RuntimeError("ollama down"))
+        llm = FakeLLM(error=RuntimeError("provider down"))
         self.assertEqual(guardrails.check_output(llm, "q", "a", "src"), (True, ""))
 
     def test_fail_open_on_unparseable(self):

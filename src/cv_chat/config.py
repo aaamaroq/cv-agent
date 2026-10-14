@@ -12,15 +12,15 @@ PROJECT_NOTES_PATH = REPO_ROOT / "docs" / "PROJECT.md"
 class Settings:
     model: str
     guardrail_model: str
-    ollama_host: str
+    api_key: str
     temperature: float
 
 
 @lru_cache(maxsize=1)
 def get_settings() -> Settings:
     return Settings(
-        model=os.getenv("CV_MODEL", "gemma3:4b"),
-        guardrail_model=os.getenv("CV_GUARDRAIL_MODEL", "gemma3:1b"),
-        ollama_host=os.getenv("OLLAMA_HOST", "http://localhost:11434"),
+        model=os.getenv("CV_MODEL", "google/gemma-4-31b-it:free"),
+        guardrail_model=os.getenv("CV_GUARDRAIL_MODEL", "deepseek/deepseek-chat:free"),
+        api_key=os.getenv("OPENROUTER_API_KEY", ""),
         temperature=float(os.getenv("CV_TEMPERATURE", "0.3")),
     )

@@ -1,16 +1,16 @@
 """Input and output guardrails for the CV chatbot.
 
-Both checks run on a small classifier model (``CV_GUARDRAIL_MODEL``) with
-temperature 0 and JSON output mode, so the main chat model is only used for
-real answers. All guardrail failures are fail-open: if a call errors or the
-reply cannot be parsed, the message flows normally.
+Both checks run on a small, cheap classifier model (``CV_GUARDRAIL_MODEL``) at
+temperature 0 over OpenRouter, so the main chat model is only used for real
+answers. All guardrail failures are fail-open: if a call errors or the reply
+cannot be parsed, the message flows normally.
 """
 
 import json
 import re
 
 from langchain_core.messages import BaseMessage
-from langchain_ollama import ChatOllama
+from langchain_openrouter import ChatOpenRouter
 
 INPUT_VERDICTS = ("ok", "loaded", "abuse", "injection")
 
@@ -195,7 +195,7 @@ def extract_json(text: str) -> dict | None:
     return data if isinstance(data, dict) else None
 
 
-def _ask_json(llm: ChatOllama, system: str, user: str) -> dict | None:
+def _ask_json(llm: ChatOpenRouter, system: str, user: str) -> dict | None:
     try:
         response = llm.invoke([("system", system), ("human", user)])
     except Exception:  # noqa: BLE001 - guardrails never break the chat
@@ -203,7 +203,7 @@ def _ask_json(llm: ChatOllama, system: str, user: str) -> dict | None:
     return extract_json(message_text(response))
 
 
-def classify_input(llm: ChatOllama, message: str) -> tuple[str, str]:
+def classify_input(llm: ChatOpenRouter, message: str) -> tuple[str, str]:
     """Return ``(verdict, neutral_question)``; fail-open to ``("ok", message)``."""
     data = _ask_json(llm, INPUT_SYSTEM_PROMPT, message)
     if not data:
@@ -220,7 +220,7 @@ def classify_input(llm: ChatOllama, message: str) -> tuple[str, str]:
 
 
 def check_output(
-    llm: ChatOllama, question: str, answer: str, source: str
+    llm: ChatOpenRouter, question: str, answer: str, source: str
 ) -> tuple[bool, str]:
     """Return ``(ok, reason)``; fail-open to ``(True, "")``.
 

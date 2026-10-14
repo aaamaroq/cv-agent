@@ -2,14 +2,15 @@
 
 Conversational chatbot over Adrián's CV. **Phase 1 (🛹 Skateboard):** LangGraph
 with a `chatbot` node wrapped in input/output guardrail nodes (see
-`ADR/0001-input-output-guardrails.md`), CV injected into the system prompt,
-FastAPI + React/Tailwind UI, local LLM via Ollama.
+`ADR/0001-input-output-guardrails.md`), CV + derived project notes injected into
+the system prompt, FastAPI + React/Tailwind UI, LLMs via OpenRouter.
 
 ## Stack
 
 - **Backend:** Python, LangChain, LangGraph (StateGraph + MemorySaver), FastAPI
 - **Frontend:** Vite, React, Tailwind CSS v4
-- **Model:** `gemma3:4b` via Ollama (local, no API keys)
+- **Models:** via OpenRouter (`ChatOpenRouter`) — a free chat model plus a
+  cheaper classifier for the guardrails
 
 ## Run
 
@@ -17,6 +18,7 @@ Terminal 1 — backend (port 8000):
 
 ```bash
 python3 -m venv .venv && .venv/bin/pip install -r requirements.txt
+export OPENROUTER_API_KEY="sk-or-..."   # required for live runs
 PYTHONPATH=src .venv/bin/uvicorn cv_chat.server:app --reload
 ```
 
@@ -32,9 +34,9 @@ Open http://localhost:5173
 
 | Env var | Default | Purpose |
 |---|---|---|
-| `CV_MODEL` | `gemma3:4b` | Ollama model name |
-| `CV_GUARDRAIL_MODEL` | `gemma3:1b` | Small classifier for input/output guardrails |
-| `OLLAMA_HOST` | `http://localhost:11434` | Ollama endpoint |
+| `CV_MODEL` | `google/gemma-4-31b-it:free` | OpenRouter slug for the chat model |
+| `CV_GUARDRAIL_MODEL` | `deepseek/deepseek-chat:free` | Cheaper classifier for input/output guardrails |
+| `OPENROUTER_API_KEY` | *(empty)* | OpenRouter key; required for live runs (graph still builds offline) |
 | `CV_TEMPERATURE` | `0.3` | Sampling temperature |
 
 ## Project layout
@@ -60,7 +62,7 @@ web/                     # Vite + React + Tailwind UI
 
 `docs/PROJECT.md` is a second source of truth the assistant and its output
 guardrail read at runtime. It is **derived from the repo** (graph nodes, API,
-ADRs, deps, git log), so it can only describe what the project actually *is* —
+config, ADRs, deps), so it can only describe what the project actually *is* —
 never a planned feature. Regenerate it after any architecture change:
 
 ```bash

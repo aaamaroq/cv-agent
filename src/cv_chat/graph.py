@@ -1,7 +1,7 @@
 from typing import Annotated, Literal, TypedDict
 
 from langchain_core.messages import AIMessage, BaseMessage, HumanMessage, SystemMessage
-from langchain_ollama import ChatOllama
+from langchain_openrouter import ChatOpenRouter
 from langgraph.checkpoint.memory import MemorySaver
 from langgraph.graph import START, END, StateGraph
 from langgraph.graph.message import RemoveMessage, add_messages
@@ -40,17 +40,15 @@ def route_output(state: State) -> Literal["chatbot", "fallback", "__end__"]:
 
 
 def build_graph(settings: Settings) -> CompiledStateGraph:
-    llm = ChatOllama(
+    llm = ChatOpenRouter(
         model=settings.model,
-        base_url=settings.ollama_host,
+        api_key=settings.api_key or "offline-placeholder",
         temperature=settings.temperature,
     )
-    guardrail_llm = ChatOllama(
+    guardrail_llm = ChatOpenRouter(
         model=settings.guardrail_model,
-        base_url=settings.ollama_host,
+        api_key=settings.api_key or "offline-placeholder",
         temperature=0.0,
-        format="json",
-        keep_alive=0,
     )
     chain = build_prompt() | llm
     source = source_of_truth()

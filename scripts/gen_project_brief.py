@@ -105,21 +105,22 @@ def build_brief() -> str:
         "## What this project is",
         "",
         "An AI-powered portfolio chatbot: a LangGraph agent that answers "
-        "recruiters' questions about Adrián Amaro's CV. It runs a local LLM "
-        "through Ollama and wraps the main model with input and output "
-        "guardrails on a smaller classifier model. The assistant you are "
-        "reading lives inside this repository.",
+        "recruiters' questions about Adrián Amaro's CV. It calls LLMs through "
+        "the OpenRouter gateway and wraps the main model with input and output "
+        "guardrails on a separate, cheaper classifier model. The assistant you "
+        "are reading lives inside this repository.",
         "",
         "## AI-engineering signals in this repo",
         "",
         "- Multi-node LLM orchestration with LangGraph (StateGraph + "
         "conditional routing + a checkpointer).",
         "- Layered input/output guardrails with a separate classifier model "
-        "(JSON output, fail-open) — see the ADR below.",
+        "(structured JSON output, fail-open) — see the ADR below.",
         "- Adversarial robustness: prompt-injection and leading-question "
         "handling, verified by an evaluation harness (`scripts/guardrail_probe.py`).",
         "- Token streaming over Server-Sent Events from FastAPI to a React UI.",
-        "- Local model serving with explicit memory/latency trade-offs.",
+        "- Provider-agnostic LLM serving through OpenRouter (one endpoint, many "
+        "models, per-request model routing for the cheap guardrail classifier).",
         "",
         "## Graph",
         "",
