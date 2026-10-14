@@ -13,12 +13,13 @@ It parses (it does not import, so it needs no runtime deps):
   - server.py    → HTTP endpoints
   - ADR/*.md     → decision records (title, status, date)
   - requirements.txt → declared stack
-  - git log      → recent history
+
+Deliberately excludes volatile signals (timestamps, git log) so the file is
+byte-stable for a given repo state and does not dirty the tree on every commit.
 """
 
 import argparse
 import re
-import subprocess
 import sys
 from pathlib import Path
 
@@ -78,19 +79,6 @@ def parse_adrs() -> list[str]:
         )
         rows.append(f"- **{title}**" + (f" ({suffix})" if suffix else ""))
     return rows
-
-
-def git_recent(limit: int = 6) -> list[str]:
-    try:
-        out = subprocess.run(
-            ["git", "log", f"-{limit}", "--oneline"],
-            cwd=REPO_ROOT, capture_output=True, text=True, timeout=10,
-        )
-    except (OSError, subprocess.SubprocessError):
-        return []
-    if out.returncode != 0:
-        return []
-    return [f"- {line}" for line in out.stdout.splitlines() if line.strip()]
 
 
 def parse_stack() -> list[str]:
@@ -158,10 +146,6 @@ def build_brief() -> str:
         "## Decision records",
         "",
         *(parse_adrs() or ["- (none)"]),
-        "",
-        "## Recent history",
-        "",
-        *(git_recent() or ["- (git unavailable)"]),
         "",
     ]
     return "\n".join(sections)
