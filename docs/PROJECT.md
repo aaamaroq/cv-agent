@@ -57,9 +57,11 @@ An AI-powered portfolio chatbot: a LangGraph agent that answers recruiters' ques
 
 - **ADR 0001: Input and output guardrails as graph nodes** (Accepted · 2026-10-07)
 - **ADR 0002: Derived project memory and a grounded output critic** (Accepted · 2026-10-14)
+- **ADR 0003: Positioning is measured, not gated; subgraph extraction deferred** (Accepted · 2026-10-14)
 
 ## Recent history
 
+- ba17269 Ground the output critic in a derived project brief (Paso 0+1)
 - a092d7b Add input/output guardrail nodes to chat graph
 - f4b7865 Add Phase 1 skateboard: LangGraph CV chatbot with FastAPI + React UI
 - bb61e74 Add project manifest
