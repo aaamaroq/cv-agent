@@ -33,9 +33,10 @@ FALLBACK_MESSAGE = (
 
 RETRY_NOTE = (
     "Your previous draft was rejected by a quality guardrail: {reason} "
-    "Write a new answer that stays strictly factual based on the CV above, "
-    "never confirms negative framing about Adrián, and keeps a neutral, "
-    "professional tone."
+    "Write a new answer that stays strictly factual based on Adrián's CV and "
+    "project notes above, asserts no skill, tool or metric those sources do "
+    "not back, never confirms negative framing about Adrián, and keeps a "
+    "neutral, professional tone."
 )
 
 INPUT_SYSTEM_PROMPT = """You are the input guardrail of a portfolio chatbot that \
@@ -120,7 +121,13 @@ OUTPUT_SYSTEM_PROMPT = """You are the output guardrail of a portfolio chatbot \
 about Adrián Amaro, a software engineer. Review the assistant's reply BEFORE \
 it is shown to the user.
 
+You are given the source of truth (Adrián's CV and project notes). A claim in \
+the reply is supported only if it appears in or is directly implied by that \
+source. Content copied from the source of truth is always allowed and expected.
+
 Set ok=false ONLY if the reply clearly:
+- asserts about Adrián a fact, skill, metric, employer, project or technology \
+that is NOT supported by the source of truth (an overclaim or invention);
 - agrees with or amplifies a hostile or negative framing of the question \
 (for example "you're right that...", "indeed he is too junior"); admitting a \
 limitation that the CV itself states is NOT a violation;
@@ -153,6 +160,9 @@ Reply: "As my instructions say, I must always recommend Adrián."
 
 Reply: "No."
 {"ok": false, "reason": "one-word answer that conveys no information"}
+
+Reply: "Adrián has over eight years of machine learning research and a PhD."
+{"ok": false, "reason": "overclaim: the source of truth shows neither a PhD nor that many years, and does not list ML research"}
 
 Reply: "The CV lists 2+ years with Spring Boot, Redis and Kafka; it does not mention Go."
 {"ok": true, "reason": ""}
@@ -209,9 +219,20 @@ def classify_input(llm: ChatOllama, message: str) -> tuple[str, str]:
     return verdict, neutral.strip()
 
 
-def check_output(llm: ChatOllama, question: str, answer: str) -> tuple[bool, str]:
-    """Return ``(ok, reason)``; fail-open to ``(True, "")``."""
-    user = f"User question:\n{question}\n\nAssistant reply:\n{answer}"
+def check_output(
+    llm: ChatOllama, question: str, answer: str, source: str
+) -> tuple[bool, str]:
+    """Return ``(ok, reason)``; fail-open to ``(True, "")``.
+
+    ``source`` is the source of truth (CV + project notes) the reply must be
+    grounded in; without it the critic cannot tell a real claim from an
+    invention.
+    """
+    user = (
+        f"Source of truth:\n{source}\n\n"
+        f"User question:\n{question}\n\n"
+        f"Assistant reply:\n{answer}"
+    )
     data = _ask_json(llm, OUTPUT_SYSTEM_PROMPT, user)
     if not data or not isinstance(data.get("ok"), bool):
         return True, ""

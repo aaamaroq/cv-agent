@@ -40,13 +40,29 @@ Open http://localhost:5173
 ## Project layout
 
 ```
-cv.md                    # CV content (single source of truth → system prompt)
+cv.md                    # CV content (source of truth → system prompt)
+docs/PROJECT.md          # GENERATED project memory (see below — never hand-edit)
+AGENTS.md                # rules for agents/humans working on this repo
 ADR/                     # architecture decision records
+scripts/
+  gen_project_brief.py   # derives docs/PROJECT.md from the live repo
+  guardrail_probe.py     # guardrail evaluation ladder
 src/cv_chat/
   config.py              # settings
-  prompts.py             # loads cv.md into the system prompt
+  prompts.py             # loads cv.md + docs/PROJECT.md into the system prompt
   guardrails.py          # input/output guardrail prompts + checks
   graph.py               # LangGraph StateGraph (guardrail nodes + checkpointer)
   server.py              # FastAPI: POST /api/chat (SSE streaming)
 web/                     # Vite + React + Tailwind UI
+```
+
+## Project memory
+
+`docs/PROJECT.md` is a second source of truth the assistant and its output
+guardrail read at runtime. It is **derived from the repo** (graph nodes, API,
+ADRs, deps, git log), so it can only describe what the project actually *is* —
+never a planned feature. Regenerate it after any architecture change:
+
+```bash
+.venv/bin/python scripts/gen_project_brief.py
 ```

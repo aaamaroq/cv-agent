@@ -9,7 +9,7 @@ from langgraph.graph.state import CompiledStateGraph
 
 from . import guardrails
 from .config import Settings
-from .prompts import build_prompt
+from .prompts import build_prompt, source_of_truth
 
 MAX_OUTPUT_RETRIES = 1
 
@@ -53,6 +53,7 @@ def build_graph(settings: Settings) -> CompiledStateGraph:
         keep_alive=0,
     )
     chain = build_prompt() | llm
+    source = source_of_truth()
 
     def input_guardrail(state: State) -> State:
         last = state["messages"][-1]
@@ -104,7 +105,7 @@ def build_graph(settings: Settings) -> CompiledStateGraph:
         if state.get("input_verdict") == "loaded" and state.get("neutral_question"):
             question = state["neutral_question"]
         ok, reason = guardrails.check_output(
-            guardrail_llm, question, guardrails.message_text(last)
+            guardrail_llm, question, guardrails.message_text(last), source
         )
         if ok:
             return {"output_ok": True, "retries": state.get("retries", 0)}

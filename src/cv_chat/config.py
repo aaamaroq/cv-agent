@@ -5,6 +5,7 @@ from pathlib import Path
 
 REPO_ROOT = Path(__file__).resolve().parents[2]
 CV_PATH = REPO_ROOT / "cv.md"
+PROJECT_NOTES_PATH = REPO_ROOT / "docs" / "PROJECT.md"
 
 
 @dataclass(frozen=True)
