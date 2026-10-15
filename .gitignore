@@ -4,5 +4,5 @@ __pycache__/
 .env
 node_modules/
 web/dist/
-.streamlit/
+# private — copy from cv.md.sample and fill in
 cv.md

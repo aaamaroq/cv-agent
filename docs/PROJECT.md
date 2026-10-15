@@ -43,6 +43,9 @@ An AI-powered portfolio chatbot: a LangGraph agent that answers recruiters' ques
 - `CV_MODEL` (default `google/gemma-4-31b-it:free`)
 - `CV_GUARDRAIL_MODEL` (default `deepseek/deepseek-chat:free`)
 - `CV_TEMPERATURE` (default `0.3`)
+- `CV_MAX_THREADS` (default `32`)
+- `CV_HISTORY_WINDOW` (default `24`)
+- `CV_LLM_TIMEOUT_S` (default `60`)
 
 ## Stack
 
@@ -59,3 +62,5 @@ An AI-powered portfolio chatbot: a LangGraph agent that answers recruiters' ques
 - **ADR 0003: Positioning is measured, not gated; subgraph extraction deferred** (Accepted · 2026-10-14)
 - **ADR 0004: Migrate inference from local Ollama to OpenRouter** (Accepted · 2026-10-14)
 - **ADR 0005: Wrap the turn in a compiled agent subgraph** (Accepted · 2026-10-14)
+- **ADR 0006: Keep the loaded rewrite as the stored history** (Accepted · 2026-10-15)
+- **ADR 0007: Gate streamed tokens behind the output verdict (and add runtime limits)** (Accepted · 2026-10-15)

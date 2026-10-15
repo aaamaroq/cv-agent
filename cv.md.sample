@@ -1,0 +1,37 @@
+<!-- Copy this file to cv.md and fill it in. cv.md is intentionally not tracked in git (see README 'First run'). -->
+# [Your Name]
+
+- **Email:** [you@example.com]
+- **Portfolio:** [https://github.com/your-handle/your-project]
+- **Location:** [City, Country]
+
+## Summary
+
+[Two or three sentences: your focus, years of experience, and what kind of role you are looking for.]
+
+## Technical Skills
+
+- **Languages:** [e.g. Python, Java, TypeScript]
+- **Backend Engineering:** [e.g. frameworks, data access, auth, testing tools]
+- **Data Engineering:** [e.g. Spark, SQL, Airflow, LLM tooling]
+- **Cloud & DevOps:** [e.g. AWS, Docker, Terraform]
+- **System Design & Performance:** [e.g. Microservices, REST, ETL]
+- **Methodology:** [e.g. Scrum, Jira]
+
+## Professional Experience
+
+### [Company — Role, Location | Dates]
+
+- [e.g. Built X, reduced Y by Z%]
+- [e.g. Owned a service handling N requests/min]
+- [e.g. Automated repetitive tasks, saving H hours/week]
+
+### [Company — Role, Location | Dates]
+
+- [e.g. Migrated a legacy system to a new stack]
+- [e.g. Introduced caching, cut p95 latency by Z%]
+
+## Education
+
+- **[Degree or Diploma]** | [Institution] ([Years])
+- **[Degree or Diploma]** | [Institution] ([Years])

@@ -40,15 +40,18 @@ def route_output(state: State) -> Literal["chatbot", "fallback", "__end__"]:
 
 
 def build_graph(settings: Settings) -> CompiledStateGraph:
+    timeout_ms = int(settings.llm_timeout_s * 1000)
     llm = ChatOpenRouter(
         model=settings.model,
         api_key=settings.api_key or "offline-placeholder",
         temperature=settings.temperature,
+        timeout=timeout_ms,
     )
     guardrail_llm = ChatOpenRouter(
         model=settings.guardrail_model,
         api_key=settings.api_key or "offline-placeholder",
         temperature=0.0,
+        timeout=timeout_ms,
     )
     chain = build_prompt() | llm
     source = source_of_truth()

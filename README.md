@@ -30,6 +30,16 @@ cd web && npm install && npm run dev
 
 Open http://localhost:5173
 
+## First run (collaborators)
+
+`cv.md` is intentionally gitignored — it contains personal data — but it is
+required at runtime and by the tests. Copy the template and fill it in with
+your own details:
+
+```bash
+cp cv.md.sample cv.md
+```
+
 ## Configuration
 
 | Env var | Default | Purpose |

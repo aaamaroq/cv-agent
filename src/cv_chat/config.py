@@ -14,6 +14,9 @@ class Settings:
     guardrail_model: str
     api_key: str
     temperature: float
+    max_threads: int
+    history_window: int
+    llm_timeout_s: float
 
 
 @lru_cache(maxsize=1)
@@ -23,4 +26,7 @@ def get_settings() -> Settings:
         guardrail_model=os.getenv("CV_GUARDRAIL_MODEL", "deepseek/deepseek-chat:free"),
         api_key=os.getenv("OPENROUTER_API_KEY", ""),
         temperature=float(os.getenv("CV_TEMPERATURE", "0.3")),
+        max_threads=int(os.getenv("CV_MAX_THREADS", "32")),
+        history_window=int(os.getenv("CV_HISTORY_WINDOW", "24")),
+        llm_timeout_s=float(os.getenv("CV_LLM_TIMEOUT_S", "60")),
     )

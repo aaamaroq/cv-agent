@@ -1,14 +1,14 @@
 import json
-from typing import Iterator
+from typing import AsyncIterator
 
-from fastapi import FastAPI
+from fastapi import FastAPI, Request
 from fastapi.middleware.cors import CORSMiddleware
 from fastapi.responses import StreamingResponse
-from langchain_core.messages import HumanMessage
 from pydantic import BaseModel, Field
 
-from .config import REPO_ROOT, get_settings
+from .config import CV_PATH, PROJECT_NOTES_PATH, REPO_ROOT, get_settings
 from .graph import build_graph
+from .streaming import astream_turn
 
 app = FastAPI(title="CV Chat API")
 app.add_middleware(
@@ -20,21 +20,10 @@ app.add_middleware(
 
 graph = build_graph(get_settings())
 
-STREAMING_NODES = {"chatbot", "deflect", "fallback"}
-
 
 class ChatRequest(BaseModel):
     message: str = Field(min_length=1, max_length=4000)
     thread_id: str = Field(min_length=1, max_length=64)
-
-
-def _chunk_text(chunk: object) -> str:
-    content = getattr(chunk, "content", "")
-    if isinstance(content, str):
-        return content
-    if isinstance(content, list):
-        return "".join(p.get("text", "") for p in content if isinstance(p, dict))
-    return ""
 
 
 def _sse(payload: dict) -> str:
@@ -44,35 +33,27 @@ def _sse(payload: dict) -> str:
 @app.get("/api/health")
 def health() -> dict:
     settings = get_settings()
-    return {"status": "ok", "model": settings.model, "guardrail_model": settings.guardrail_model}
+    return {
+        "status": "ok",
+        "api_key_configured": bool(settings.api_key),
+        "cv_present": CV_PATH.is_file(),
+        "project_notes_present": PROJECT_NOTES_PATH.is_file(),
+        "model": settings.model,
+        "guardrail_model": settings.guardrail_model,
+    }
 
 
 @app.post("/api/chat")
-def chat(req: ChatRequest) -> StreamingResponse:
-    config = {"configurable": {"thread_id": req.thread_id}}
-
-    def event_stream() -> Iterator[str]:
+async def chat(req: ChatRequest, request: Request) -> StreamingResponse:
+    async def event_stream() -> AsyncIterator[str]:
+        events = astream_turn(graph, req.message, req.thread_id)
         try:
-            for _namespace, mode, data in graph.stream(
-                {"messages": [HumanMessage(req.message)]},
-                config,
-                stream_mode=["messages", "updates"],
-                subgraphs=True,
-            ):
-                if mode == "updates":
-                    update = data.get("output_guardrail")
-                    if isinstance(update, dict) and update.get("output_ok") is False:
-                        yield _sse({"restart": True})
-                    continue
-                chunk, metadata = data
-                if metadata.get("langgraph_node") not in STREAMING_NODES:
-                    continue
-                text = _chunk_text(chunk)
-                if text:
-                    yield _sse({"token": text})
-            yield _sse({"done": True})
-        except Exception as exc:  # noqa: BLE001 - surface any backend error to the UI
-            yield _sse({"error": str(exc)})
+            async for event in events:
+                if await request.is_disconnected():
+                    return
+                yield _sse(event)
+        finally:
+            await events.aclose()
 
     return StreamingResponse(event_stream(), media_type="text/event-stream")
 

@@ -1,3 +1,5 @@
+from pathlib import Path
+
 from langchain_core.prompts import ChatPromptTemplate, MessagesPlaceholder
 
 from .config import CV_PATH, PROJECT_NOTES_PATH
@@ -40,14 +42,29 @@ framing them as Adrián's likely perspective based on his background.
 """
 
 
+CV_MISSING_MESSAGE = (
+    "cv.md not found. Copy cv.md.sample to cv.md and fill it in "
+    "(see README 'First run')."
+)
+PROJECT_NOTES_MISSING_MESSAGE = (
+    "(No project notes available yet — run scripts/gen_project_brief.py.)"
+)
+
+
+def _read_source(path: Path, missing: str, *, required: bool = False) -> str:
+    if path.is_file():
+        return path.read_text(encoding="utf-8")
+    if required:
+        raise FileNotFoundError(missing)
+    return missing
+
+
 def load_cv() -> str:
-    return CV_PATH.read_text(encoding="utf-8")
+    return _read_source(CV_PATH, CV_MISSING_MESSAGE, required=True)
 
 
 def load_project_notes() -> str:
-    if not PROJECT_NOTES_PATH.is_file():
-        return "(No project notes available yet — run scripts/gen_project_brief.py.)"
-    return PROJECT_NOTES_PATH.read_text(encoding="utf-8")
+    return _read_source(PROJECT_NOTES_PATH, PROJECT_NOTES_MISSING_MESSAGE)
 
 
 def source_of_truth() -> str:

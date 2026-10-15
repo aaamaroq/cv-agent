@@ -6,7 +6,8 @@ before touching code.
 ## What this project is
 
 A LangGraph agent that answers recruiters' questions about Adrián Amaro's CV,
-with a local Ollama LLM wrapped in input/output guardrails, served by FastAPI
+with LLMs via OpenRouter (a main chat model and a cheaper guardrail classifier
+model) wrapped in input/output guardrails, served by FastAPI
 with a React/Tailwind UI. See `README.md` and `MANIFEST.MD` for the vision and
 the phased "vehicle" roadmap (skateboard → ...).
 
@@ -73,8 +74,8 @@ change.
 - Clean, idiomatic Python; lean on LangChain/LangGraph native features.
 - Backend: `PYTHONPATH=src .venv/bin/uvicorn cv_chat.server:app --reload`
 - Frontend: `cd web && npm run dev`
-- A local Ollama must be reachable at `OLLAMA_HOST` for live runs; unit-style
-  graph construction does not need it.
+- An `OPENROUTER_API_KEY` must be exported for live runs (unit-style graph
+  construction does not need it).
 - Offline tests (no LLM, stdlib `unittest`):
   `PYTHONPATH=src .venv/bin/python -m unittest discover -s tests`
 
