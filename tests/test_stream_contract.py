@@ -1,14 +1,14 @@
 """Characterization tests for the streaming/SSE contract.
 
-These lock the exact LangGraph event shapes ``server.py`` depends on:
+These lock the LangGraph event shapes consumed by the streaming adapter:
   * the ``restart`` signal surfaces as an ``output_guardrail`` update with
-    ``output_ok=False`` (server reads ``data["output_guardrail"]["output_ok"]``)
+    ``output_ok=False``
   * ``deflect`` / ``fallback`` / ``chatbot`` stream their text under those node
-    names (server filters ``metadata["langgraph_node"] in STREAMING_NODES``)
+    names in the message metadata
 
 All offline: the LLM and the guardrail classifiers are mocked, so no network and
-no provider. This is the safety net that makes any future graph refactor (e.g.
-the deferred guardrail subgraph) verifiable without a live probe run.
+no provider. This is the safety net that makes changes to graph nesting and
+stream event shapes verifiable without a live probe run.
 """
 
 import sys
@@ -100,11 +100,8 @@ class StreamContractTests(unittest.TestCase):
         self.assertTrue(tokens[-1][1].startswith(guardrails.FALLBACK_MESSAGE[:40]))
 
     def test_restart_surfaces_via_subgraph_stream(self):
-        # server.py + the probe read the output_guardrail restart signal from
-        # updates while streaming with subgraphs=True. The whole turn now lives
-        # in an "agent" subgraph, so the signal surfaces under a nested
-        # namespace (see tests); the consumer must iterate the subgraph tuples
-        # or it silently loses the restart.
+        # The turn lives in an "agent" subgraph, so the restart update reaches
+        # consumers under a nested namespace when streaming with subgraphs=True.
         tokens, restarts = run_scenario("Kafka", rejects=1)
         self.assertGreaterEqual(restarts, 1)
 

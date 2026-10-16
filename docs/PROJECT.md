@@ -64,3 +64,4 @@ An AI-powered portfolio chatbot: a LangGraph agent that answers recruiters' ques
 - **ADR 0005: Wrap the turn in a compiled agent subgraph** (Accepted · 2026-10-14)
 - **ADR 0006: Keep the loaded rewrite as the stored history** (Accepted · 2026-10-15)
 - **ADR 0007: Gate streamed tokens behind the output verdict (and add runtime limits)** (Accepted · 2026-10-15)
+- **ADR 0008: Isolate stream adaptation and coordinate conversation runtime** (Accepted · 2026-10-15)
