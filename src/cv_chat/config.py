@@ -1,6 +1,7 @@
 import os
 from dataclasses import dataclass
 from functools import lru_cache
+from math import isfinite
 from pathlib import Path
 
 REPO_ROOT = Path(__file__).resolve().parents[2]
@@ -17,6 +18,14 @@ class Settings:
     max_threads: int
     history_window: int
     llm_timeout_s: float
+
+    def __post_init__(self) -> None:
+        if self.max_threads < 1:
+            raise ValueError("CV_MAX_THREADS must be at least 1")
+        if self.history_window < 4:
+            raise ValueError("CV_HISTORY_WINDOW must be at least 4")
+        if not isfinite(self.llm_timeout_s) or self.llm_timeout_s < 0.001:
+            raise ValueError("CV_LLM_TIMEOUT_S must be finite and at least 0.001 seconds")
 
 
 @lru_cache(maxsize=1)
