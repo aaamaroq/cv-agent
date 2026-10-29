@@ -20,6 +20,7 @@ from langchain_core.messages import HumanMessage
 
 from .config import get_settings
 from .conversation_runtime import ConversationRuntime
+from .observability import langfuse_callback_handler
 
 CHATBOT_NODE = "chatbot"
 IMMEDIATE_NODES = frozenset({"deflect", "fallback"})
@@ -117,7 +118,21 @@ def _input(message: str) -> dict:
 
 
 def _config(thread_id: str) -> dict:
-    return {"configurable": {"thread_id": thread_id}}
+    config = {"configurable": {"thread_id": thread_id}}
+    callback = langfuse_callback_handler()
+    if callback is not None:
+        config.update(
+            {
+                "run_name": "cv-chat-turn",
+                "metadata": {
+                    "langfuse_session_id": thread_id,
+                    "langfuse_trace_name": "CV chat turn",
+                    "langfuse_tags": ["cv-chat", "langgraph"],
+                },
+                "callbacks": [callback],
+            }
+        )
+    return config
 
 
 def stream_turn(graph: Any, message: str, thread_id: str) -> Iterator[dict[str, Any]]:

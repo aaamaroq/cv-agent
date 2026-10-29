@@ -146,6 +146,28 @@ class GraphEventAdapterTests(unittest.TestCase):
         self.assertEqual(decoded, streaming._OutputVerdict(accepted=False))
 
 
+class LangfuseConfigTests(unittest.TestCase):
+
+    def test_turn_config_sets_trace_name_session_and_callback(self):
+        callback = object()
+        with mock.patch.object(streaming, "langfuse_callback_handler", return_value=callback):
+            config = streaming._config("thread-local-42")
+
+        self.assertEqual(config["configurable"], {"thread_id": "thread-local-42"})
+        self.assertEqual(config["run_name"], "cv-chat-turn")
+        self.assertEqual(
+            config["metadata"]["langfuse_session_id"], "thread-local-42"
+        )
+        self.assertEqual(config["metadata"]["langfuse_trace_name"], "CV chat turn")
+        self.assertEqual(config["callbacks"], [callback])
+
+    def test_turn_config_remains_valid_without_langfuse(self):
+        with mock.patch.object(streaming, "langfuse_callback_handler", return_value=None):
+            config = streaming._config("thread-no-telemetry")
+
+        self.assertEqual(config, {"configurable": {"thread_id": "thread-no-telemetry"}})
+
+
 class MessageWindowTests(unittest.TestCase):
 
     def test_long_history_is_trimmed_and_turn_still_works(self):

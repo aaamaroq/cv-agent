@@ -22,9 +22,29 @@ class SettingsValidationTests(unittest.TestCase):
 
     def test_resource_limit_defaults_are_valid(self):
         settings = self.settings_from_env({})
+        self.assertEqual(settings.model, "mistralai/mistral-nemo")
+        self.assertEqual(settings.guardrail_model, "mistralai/mistral-nemo")
         self.assertEqual(settings.max_threads, 32)
         self.assertEqual(settings.history_window, 24)
         self.assertEqual(settings.llm_timeout_s, 60.0)
+        self.assertFalse(settings.langfuse_configured)
+
+    def test_langfuse_requires_enabled_flag_and_all_local_credentials(self):
+        settings = self.settings_from_env({
+            "CV_LANGFUSE_ENABLED": "true",
+            "LANGFUSE_PUBLIC_KEY": "pk-lf-local",
+            "LANGFUSE_SECRET_KEY": "sk-lf-local",
+            "LANGFUSE_BASE_URL": "http://langfuse-web:3000",
+        })
+        self.assertTrue(settings.langfuse_configured)
+
+        disabled = self.settings_from_env({
+            "CV_LANGFUSE_ENABLED": "false",
+            "LANGFUSE_PUBLIC_KEY": "pk-lf-local",
+            "LANGFUSE_SECRET_KEY": "sk-lf-local",
+            "LANGFUSE_BASE_URL": "http://langfuse-web:3000",
+        })
+        self.assertFalse(disabled.langfuse_configured)
 
     def test_minimum_allowed_resource_limits_are_valid(self):
         settings = self.settings_from_env({

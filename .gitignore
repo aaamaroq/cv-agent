@@ -2,6 +2,8 @@
 __pycache__/
 *.pyc
 .env
+.env.*
+!.env.example
 node_modules/
 web/dist/
 # private — copy from cv.md.sample and fill in

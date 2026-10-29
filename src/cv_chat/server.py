@@ -1,4 +1,5 @@
 import json
+from contextlib import asynccontextmanager
 from typing import AsyncIterator
 
 from fastapi import FastAPI, Request
@@ -8,9 +9,26 @@ from pydantic import BaseModel, Field
 
 from .config import CV_PATH, PROJECT_NOTES_PATH, REPO_ROOT, get_settings
 from .graph import build_graph
+from .observability import (
+    ChatRequestTracingMiddleware,
+    configure_observability,
+    shutdown_observability,
+)
 from .streaming import astream_turn
 
-app = FastAPI(title="CV Chat API")
+configure_observability(get_settings())
+
+
+@asynccontextmanager
+async def lifespan(_app: FastAPI) -> AsyncIterator[None]:
+    try:
+        yield
+    finally:
+        shutdown_observability()
+
+
+app = FastAPI(title="CV Chat API", lifespan=lifespan)
+app.add_middleware(ChatRequestTracingMiddleware)
 app.add_middleware(
     CORSMiddleware,
     allow_origins=["http://localhost:5173"],

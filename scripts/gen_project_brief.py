@@ -34,7 +34,7 @@ EDGE_RE = re.compile(r'builder\.add_edge\((START|END|"[^"]+"),\s*(START|END|"[^"
 COND_RE = re.compile(r'builder\.add_conditional_edges\("([^"]+)",\s*(\w+)')
 ROUTE_MAP = {"route_input": "input_guardrail", "route_output": "output_guardrail"}
 ENDPOINT_RE = re.compile(r'@app\.(get|post|put|delete)\("([^"]+)"')
-ENV_RE = re.compile(r'os\.getenv\("([^"]+)",\s*"([^"]+)"')
+ENV_RE = re.compile(r'os\.getenv\("([^"]+)",\s*"([^"]*)"')
 
 
 def _clean(name: str) -> str:

@@ -182,6 +182,12 @@ class ProjectBriefTests(unittest.TestCase):
     def test_build_brief_is_deterministic(self):
         self.assertEqual(self.gen.build_brief(), self.gen.build_brief())
 
+    def test_parses_environment_variables_with_empty_defaults(self):
+        self.assertEqual(
+            self.gen.parse_env('os.getenv("LANGFUSE_PUBLIC_KEY", "")'),
+            ['- `LANGFUSE_PUBLIC_KEY` (default ``)'],
+        )
+
 
 if __name__ == "__main__":
     unittest.main()

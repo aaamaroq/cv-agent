@@ -1,0 +1,24 @@
+services:
+  app:
+    build:
+      context: .
+      dockerfile: Dockerfile.dev
+    volumes:
+      - ./src:/app/src
+      - ./docs:/app/docs
+
+  frontend:
+    build:
+      context: ./web
+      dockerfile: Dockerfile.dev
+    restart: unless-stopped
+    environment:
+      VITE_API_PROXY_TARGET: http://app:8000
+    ports:
+      - "127.0.0.1:5173:5173"
+    volumes:
+      - ./web/src:/web/src
+      - ./web/index.html:/web/index.html
+      - ./web/vite.config.js:/web/vite.config.js
+    depends_on:
+      - app
