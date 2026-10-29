@@ -4,7 +4,7 @@
 
 ## What this project is
 
-An AI-powered portfolio chatbot: a LangGraph agent that answers recruiters' questions about Adrián Amaro's CV. It calls LLMs through the OpenRouter gateway and wraps the main model with input and output guardrails on a separate, cheaper classifier model. The assistant you are reading lives inside this repository.
+An AI-powered portfolio chatbot: a LangGraph agent that answers recruiters' questions about Adrián Amaro's CV. It calls LLMs through the OpenRouter gateway and wraps the main model with input and output guardrails using a separately configurable classifier model. The assistant you are reading lives inside this repository.
 
 ## AI-engineering signals in this repo
 
@@ -12,7 +12,7 @@ An AI-powered portfolio chatbot: a LangGraph agent that answers recruiters' ques
 - Layered input/output guardrails with a separate classifier model (structured JSON output, fail-open) — see the ADR below.
 - Adversarial robustness: prompt-injection and leading-question handling, verified by an evaluation harness (`scripts/guardrail_probe.py`).
 - Token streaming over Server-Sent Events from FastAPI to a React UI.
-- Provider-agnostic LLM serving through OpenRouter (one endpoint, many models, per-request model routing for the cheap guardrail classifier).
+- OpenRouter serving with independently configurable answer and guardrail model IDs.
 
 ## Graph
 
@@ -40,12 +40,17 @@ An AI-powered portfolio chatbot: a LangGraph agent that answers recruiters' ques
 
 ## Configuration
 
-- `CV_MODEL` (default `google/gemma-4-31b-it:free`)
-- `CV_GUARDRAIL_MODEL` (default `deepseek/deepseek-chat:free`)
+- `CV_MODEL` (default `mistralai/mistral-nemo`)
+- `CV_GUARDRAIL_MODEL` (default `mistralai/mistral-nemo`)
+- `OPENROUTER_API_KEY` (default ``)
 - `CV_TEMPERATURE` (default `0.3`)
 - `CV_MAX_THREADS` (default `32`)
 - `CV_HISTORY_WINDOW` (default `24`)
 - `CV_LLM_TIMEOUT_S` (default `60`)
+- `CV_LANGFUSE_ENABLED` (default `true`)
+- `LANGFUSE_PUBLIC_KEY` (default ``)
+- `LANGFUSE_SECRET_KEY` (default ``)
+- `LANGFUSE_BASE_URL` (default ``)
 
 ## Stack
 
@@ -54,6 +59,8 @@ An AI-powered portfolio chatbot: a LangGraph agent that answers recruiters' ques
 - langgraph
 - fastapi
 - uvicorn
+- langfuse
+- opentelemetry-api
 
 ## Decision records
 
@@ -65,3 +72,7 @@ An AI-powered portfolio chatbot: a LangGraph agent that answers recruiters' ques
 - **ADR 0006: Keep the loaded rewrite as the stored history** (Accepted · 2026-10-15)
 - **ADR 0007: Gate streamed tokens behind the output verdict (and add runtime limits)** (Accepted · 2026-10-15)
 - **ADR 0008: Isolate stream adaptation and coordinate conversation runtime** (Accepted · 2026-10-15)
+- **ADR 0009: Self-host local observability with Langfuse and OpenTelemetry** (Accepted · 2026-10-20)
+- **ADR 0010: Hot reload for local Docker development** (Accepted · 2026-10-26)
+- **ADR 0011: Portfolio voice and local RAG evaluation (implementation pending)** (Accepted · 2026-10-26)
+- **ADR 0012: Update OpenRouter model defaults** (Accepted · 2026-10-29)

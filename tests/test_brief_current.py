@@ -27,6 +27,14 @@ class ProjectBriefCurrentTests(unittest.TestCase):
             ".venv/bin/python scripts/gen_project_brief.py",
         )
 
+    def test_brief_does_not_claim_the_guardrail_model_is_cheaper(self):
+        gen = _load_gen_brief()
+        brief = gen.build_brief()
+
+        self.assertIn("separately configurable classifier model", brief)
+        self.assertIn("`CV_GUARDRAIL_MODEL`", brief)
+        self.assertNotIn("cheaper classifier model", brief)
+
 
 if __name__ == "__main__":
     unittest.main()

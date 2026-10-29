@@ -104,7 +104,7 @@ cp cv.md.sample cv.md
 | Env var | Default | Purpose |
 |---|---|---|
 | `CV_MODEL` | `mistralai/mistral-nemo` | OpenRouter slug for the chat model |
-| `CV_GUARDRAIL_MODEL` | `mistralai/mistral-nemo` | Low-cost model for input/output guardrails |
+| `CV_GUARDRAIL_MODEL` | `mistralai/mistral-nemo` | Model ID for input/output guardrails; configurable separately from the chat model |
 | `OPENROUTER_API_KEY` | *(empty)* | OpenRouter key; required for live runs (graph still builds offline) |
 | `CV_TEMPERATURE` | `0.3` | Sampling temperature |
 | `CV_LANGFUSE_ENABLED` | `true` | Enables local Langfuse tracing when the credentials and base URL are set |

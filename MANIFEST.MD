@@ -8,9 +8,11 @@ Build an interactive web portfolio and CV for an **AI Engineer**. The core of th
 #### 🛠️ Main Tech Stack
 
 * **Language:** Python (mandatory).
-* **Orchestration Framework:** LangChain (the main focus is to master this framework from 0 to 100, using the project itself as a way to learn it).
-* **Vector Database:** Local/lightweight for the RAG pipeline (e.g., ChromaDB).
-* **Initial Interface:** Streamlit or similar for fast iteration without frontend friction.
+* **Orchestration Framework:** LangChain and LangGraph (the main focus is to master these frameworks through the project).
+* **Retrieval:** Local RAG is an optional experiment, not a required part of the
+  stack. Adopt a vector store only if evaluation shows a meaningful quality
+  improvement.
+* **Interface:** React and Tailwind CSS in the current app; the initial Streamlit idea was replaced by the web UI.
 
 #### 🚀 Evolutionary Development Approach (Vehicle Metaphor)
 
