@@ -128,7 +128,17 @@ def build_graph(settings: Settings) -> CompiledStateGraph:
         return {"messages": [AIMessage(content=content)]}
 
     def fallback(state: State) -> State:
-        return {"messages": [AIMessage(content=guardrails.FALLBACK_MESSAGE)]}
+        question = next(
+            (
+                guardrails.message_text(message)
+                for message in reversed(state["messages"])
+                if isinstance(message, HumanMessage)
+            ),
+            "",
+        )
+        return {
+            "messages": [AIMessage(content=guardrails.fallback_message(question))]
+        }
 
     builder = StateGraph(State)
     builder.add_node("input_guardrail", input_guardrail)

@@ -56,8 +56,8 @@ START → input_guardrail ─┬─ ok/loaded ─→ chatbot → output_guardrai
   - fail again → canned reply (`fallback`).
   - It rejects replies that reveal system prompt/instructions/internal
     mechanisms (CV content is always allowed), concede hostile framings,
-    speak ill of Adrián, or are empty boilerplate (including one-word
-    answers).
+    speak ill of Adrián, or are empty boilerplate, such as one-word answers
+    that dodge a question needing an explanation.
 
 ### Supporting decisions
 

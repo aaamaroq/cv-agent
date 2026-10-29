@@ -58,9 +58,11 @@ hard-coded mappings, no forced framing.
 - **Drift is bounded by honesty, not freshness.** A slightly stale `PROJECT.md`
   is caught the same way a fabricated employer is: the critic rejects any claim
   the current source does not support.
-- **No brittle technology lists.** Guardrail examples and probe markers use
+- **No brittle overclaim examples.** Overclaim examples and probe markers use
   credentials (`PhD`, `eight years`) that the CV can never acquire, not
-  technologies it might legitimately add tomorrow (Kubernetes, Go…).
+  technologies it might legitimately add tomorrow (Kubernetes, Go…). Other
+  grounding examples may mention technologies when testing claims about what
+  the CV does or does not list.
 - **Token cost on a small classifier.** The critic now reads the whole CV +
   brief every call. `gemma3:1b` on local hardware tolerates it but each turn is
   heavier; mitigated by `keep_alive=0` and the one-retry cap already in ADR 0001.
