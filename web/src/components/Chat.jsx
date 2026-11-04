@@ -28,7 +28,7 @@ const COPY = {
     retry: 'Reintentar',
   },
   en: {
-    heading: 'An AI engineering portfolio',
+    heading: 'AI engineering portfolio',
     description: "Ask about Adrián's experience in AI, data, software, and projects.",
     portraitAlt: 'Portrait of Adrián Amaro outdoors.',
     welcome:
@@ -185,29 +185,27 @@ export default function Chat({ language, profile, profileId }) {
           <figcaption>Adrián Amaro</figcaption>
         </figure>
 
-        {empty && (
-          <div className="studio-starters">
-            <h2>{copy.suggested}</h2>
-            <ul>
-              {questions.map(({ label, question }) => (
-                <li key={label}>
-                  <button
-                    type="button"
-                    title={question}
-                    aria-label={question}
-                    onClick={() => send(question)}
-                    disabled={busy}
-                  >
-                    <span>{label}</span>
-                    <svg viewBox="0 0 20 20" fill="none" aria-hidden="true">
-                      <path d="M3 10h13m-5-5 5 5-5 5" />
-                    </svg>
-                  </button>
-                </li>
-              ))}
-            </ul>
-          </div>
-        )}
+        <div className="studio-starters">
+          {empty && <h2>{copy.suggested}</h2>}
+          <ul>
+            {questions.map(({ label, question }) => (
+              <li key={label}>
+                <button
+                  type="button"
+                  title={question}
+                  aria-label={question}
+                  onClick={() => send(question)}
+                  disabled={busy}
+                >
+                  <span>{label}</span>
+                  <svg viewBox="0 0 20 20" fill="none" aria-hidden="true">
+                    <path d="M3 10h13m-5-5 5 5-5 5" />
+                  </svg>
+                </button>
+              </li>
+            ))}
+          </ul>
+        </div>
       </div>
 
       <div className="studio-conversation" role="log" aria-label={heading} aria-live="polite">
@@ -241,49 +239,51 @@ export default function Chat({ language, profile, profileId }) {
         <div ref={bottomRef} />
       </div>
 
-      <form
-        className="studio-composer"
-        onSubmit={(event) => {
-          event.preventDefault()
-          send(input)
-        }}
-      >
-        <label className="studio-visually-hidden" htmlFor="chat-input">
-          {copy.inputLabel}
-        </label>
-        <textarea
-          id="chat-input"
-          className="studio-composer-input"
-          ref={textareaRef}
-          rows={1}
-          maxLength={4000}
-          value={input}
-          onChange={(event) => {
-            setInput(event.target.value)
-            event.target.style.height = 'auto'
-            event.target.style.height = `${Math.min(event.target.scrollHeight, 144)}px`
+      <div className="studio-composer-dock">
+        <form
+          className="studio-composer"
+          onSubmit={(event) => {
+            event.preventDefault()
+            send(input)
           }}
-          onKeyDown={(event) => {
-            if (event.key === 'Enter' && !event.shiftKey) {
-              event.preventDefault()
-              send(input)
-            }
-          }}
-          placeholder={copy.placeholder}
-          disabled={busy}
-        />
-        <button className="studio-send-button" type="submit" disabled={busy || !input.trim()}>
-          <span>{busy ? copy.sending : copy.send}</span>
-          {!busy && (
-            <svg viewBox="0 0 20 20" fill="none" aria-hidden="true">
-              <path d="M3 10h13m-5-5 5 5-5 5" />
-            </svg>
-          )}
-        </button>
-      </form>
-      <p className="studio-composer-note">
-        {language === 'es' ? 'Intro para enviar · Mayús + Intro para saltar de línea' : 'Enter to send · Shift + Enter for a new line'}
-      </p>
+        >
+          <label className="studio-visually-hidden" htmlFor="chat-input">
+            {copy.inputLabel}
+          </label>
+          <textarea
+            id="chat-input"
+            className="studio-composer-input"
+            ref={textareaRef}
+            rows={1}
+            maxLength={4000}
+            value={input}
+            onChange={(event) => {
+              setInput(event.target.value)
+              event.target.style.height = 'auto'
+              event.target.style.height = `${Math.min(event.target.scrollHeight, 144)}px`
+            }}
+            onKeyDown={(event) => {
+              if (event.key === 'Enter' && !event.shiftKey) {
+                event.preventDefault()
+                send(input)
+              }
+            }}
+            placeholder={copy.placeholder}
+            disabled={busy}
+          />
+          <button className="studio-send-button" type="submit" disabled={busy || !input.trim()}>
+            <span>{busy ? copy.sending : copy.send}</span>
+            {!busy && (
+              <svg viewBox="0 0 20 20" fill="none" aria-hidden="true">
+                <path d="M3 10h13m-5-5 5 5-5 5" />
+              </svg>
+            )}
+          </button>
+        </form>
+        <p className="studio-composer-note">
+          {language === 'es' ? 'Intro para enviar · Mayús + Intro para saltar de línea' : 'Enter to send · Shift + Enter for a new line'}
+        </p>
+      </div>
     </section>
   )
 }

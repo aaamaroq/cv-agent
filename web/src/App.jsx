@@ -27,6 +27,8 @@ const COPY = {
       'Fundamentos de LLM, herramientas y function calling; ciclo razonamiento–acción–observación; smolagents, LlamaIndex y LangGraph; Agentic RAG, monitorización y evaluación de agentes.',
     profileTitle: 'Mi experiencia',
     profileNote: 'CV y herramientas',
+    openDetails: 'Ver detalles',
+    closeDetails: 'Ocultar detalles',
     flowTitle: 'Cómo funciona',
     assistantNote: 'Un vistazo al sistema que responde detrás del chat.',
     flowDisclaimer: 'Esquema estático del flujo implementado; no muestra actividad en vivo.',
@@ -84,6 +86,8 @@ const COPY = {
       'Foundations of LLMs, tools and function calling; the reasoning–action–observation loop; smolagents, LlamaIndex and LangGraph; Agentic RAG, and agent monitoring and evaluation.',
     profileTitle: 'Experience',
     profileNote: 'CV and tools',
+    openDetails: 'Explore',
+    closeDetails: 'Close',
     flowTitle: 'How it works',
     assistantNote: 'A look inside the system behind the chat.',
     flowDisclaimer: 'A static overview of the implemented flow; it does not show live activity.',
@@ -282,9 +286,16 @@ export default function App() {
             <summary>
               <span>{copy.profileTitle}</span>
               <span className="studio-details-note">{copy.profileNote}</span>
-              <svg viewBox="0 0 20 20" fill="none" aria-hidden="true">
-                <path d="m5 7.5 5 5 5-5" />
-              </svg>
+              <span
+                className="studio-details-action"
+                data-closed-label={copy.openDetails}
+                data-open-label={copy.closeDetails}
+                aria-hidden="true"
+              >
+                <svg viewBox="0 0 20 20" fill="none" aria-hidden="true">
+                  <path d="m5 7.5 5 5 5-5" />
+                </svg>
+              </span>
             </summary>
             <div className="studio-profile-content">
               <figure className="studio-profile-cover">
@@ -332,9 +343,16 @@ export default function App() {
             <summary>
               <span>{copy.flowTitle}</span>
               <span className="studio-details-note">{copy.assistantNote}</span>
-              <svg viewBox="0 0 20 20" fill="none" aria-hidden="true">
-                <path d="m5 7.5 5 5 5-5" />
-              </svg>
+              <span
+                className="studio-details-action"
+                data-closed-label={copy.openDetails}
+                data-open-label={copy.closeDetails}
+                aria-hidden="true"
+              >
+                <svg viewBox="0 0 20 20" fill="none" aria-hidden="true">
+                  <path d="m5 7.5 5 5 5-5" />
+                </svg>
+              </span>
             </summary>
             <div className="studio-flow-content">
               <ol className="studio-process">

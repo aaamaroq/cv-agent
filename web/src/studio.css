@@ -243,7 +243,19 @@ a:active {
 }
 
 .studio-chat-opening--active {
-  grid-template-areas: "heading portrait";
+  grid-template-columns: minmax(0, 1fr);
+  row-gap: 8px;
+  grid-template-areas:
+    "heading"
+    "starters";
+}
+
+.studio-chat-opening--active .studio-chat-heading {
+  min-height: 0;
+}
+
+.studio-chat-opening--active .studio-chat-portrait {
+  display: none;
 }
 
 .studio-chat-heading {
@@ -318,7 +330,7 @@ a:active {
 }
 
 .studio-conversation {
-  min-height: 350px;
+  min-height: 0;
   max-height: none;
   flex: 1 1 auto;
   overflow-y: auto;
@@ -616,6 +628,10 @@ a:active {
   padding-top: 0;
 }
 
+.studio-composer-dock {
+  flex: 0 0 auto;
+}
+
 .studio-composer-input {
   width: 100%;
   min-height: 54px;
@@ -701,15 +717,23 @@ a:active {
 
 .studio-details {
   display: grid;
-  grid-template-columns: minmax(0, 1.2fr) minmax(250px, 0.8fr);
-  gap: clamp(18px, 3vw, 40px);
-  margin-top: clamp(25px, 4vw, 48px);
+  align-items: start;
+  grid-template-columns: minmax(0, 1.2fr) minmax(0, 0.8fr);
+  gap: clamp(14px, 2vw, 24px);
+  margin-top: clamp(32px, 4.5vw, 56px);
 }
 
 .studio-details-item {
   min-width: 0;
-  border-top: 1px solid var(--color-rule);
-  border-bottom: 1px solid var(--color-rule);
+  overflow: hidden;
+  border: 1px solid var(--color-panel-line);
+  border-radius: 17px 4px 17px 4px;
+  background: var(--color-paper);
+  transition: border-color 180ms var(--ease-out), background-color 180ms var(--ease-out);
+}
+
+.studio-details-item:hover {
+  border-color: var(--color-accent);
 }
 
 .studio-flow-details[open] .studio-details-note {
@@ -722,12 +746,15 @@ a:active {
 
 .studio-details-item summary {
   display: grid;
-  min-height: 67px;
-  grid-template-columns: auto minmax(0, 1fr) 24px;
+  min-height: 94px;
+  grid-template-columns: auto minmax(0, 1fr) auto;
   align-items: center;
-  gap: 12px;
+  gap: 14px;
+  padding: 17px 20px;
+  background: var(--color-paper);
   cursor: pointer;
   list-style: none;
+  transition: background-color 180ms var(--ease-out), color 180ms var(--ease-out);
 }
 
 .studio-details-item summary::-webkit-details-marker {
@@ -738,25 +765,74 @@ a:active {
   color: var(--color-accent);
 }
 
+.studio-details-item summary:hover {
+  background: var(--color-ground-hover);
+}
+
+.studio-details-item summary:hover .studio-details-action {
+  background: var(--color-accent);
+  color: var(--color-accent-ink);
+}
+
+.studio-details-item summary:focus-visible {
+  outline-offset: -4px;
+}
+
+.studio-details-item[open] summary {
+  border-bottom: 1px solid var(--color-panel-line);
+  background: var(--color-panel);
+}
+
 .studio-details-item summary > span:first-child {
   font-family: var(--font-display);
-  font-size: 1.08rem;
+  font-size: clamp(1.2rem, 1.7vw, 1.5rem);
   font-weight: 700;
-  letter-spacing: -0.025em;
+  letter-spacing: -0.035em;
+  line-height: 1.08;
+  text-wrap: balance;
 }
 
 .studio-details-note {
   min-width: 0;
   color: var(--color-ink-soft);
-  font-size: 0.72rem;
-  line-height: 1.4;
+  font-size: 0.85rem;
+  line-height: 1.45;
   text-align: right;
 }
 
-.studio-details-item summary svg {
-  width: 22px;
-  height: 22px;
-  stroke: var(--color-ink);
+.studio-details-action {
+  display: inline-flex;
+  grid-column: -2;
+  justify-self: end;
+  min-height: 42px;
+  align-items: center;
+  justify-content: center;
+  gap: 7px;
+  padding: 0 11px;
+  border: 1px solid var(--color-accent);
+  border-radius: 999px;
+  background: var(--color-accent-soft);
+  color: var(--color-ink);
+  font-size: 0.75rem;
+  font-weight: 700;
+  line-height: 1;
+  white-space: nowrap;
+  transition: background-color 180ms var(--ease-out), color 180ms var(--ease-out);
+}
+
+.studio-details-action::before {
+  content: attr(data-closed-label);
+}
+
+.studio-details-item[open] .studio-details-action::before {
+  content: attr(data-open-label);
+}
+
+.studio-details-action svg {
+  width: 18px;
+  height: 18px;
+  flex: 0 0 auto;
+  stroke: currentColor;
   stroke-linecap: round;
   stroke-linejoin: round;
   stroke-width: 1.5;
@@ -768,7 +844,7 @@ a:active {
 }
 
 .studio-profile-content {
-  padding: 4px 0 24px;
+  padding: 20px 22px 26px;
 }
 
 .studio-profile-cover {
@@ -791,8 +867,8 @@ a:active {
 .studio-profile-intro {
   margin: 0 0 20px;
   color: var(--color-ink-soft);
-  font-size: 0.9rem;
-  line-height: 1.55;
+  font-size: 0.95rem;
+  line-height: 1.6;
 }
 
 .studio-experience-list {
@@ -811,7 +887,7 @@ a:active {
   margin: 2px 0 0;
   color: var(--color-ink-soft);
   font-family: var(--font-body);
-  font-size: 0.65rem;
+  font-size: 0.75rem;
   line-height: 1.5;
 }
 
@@ -828,8 +904,8 @@ a:active {
 .studio-experience-detail {
   margin: 5px 0 0;
   color: var(--color-ink-soft);
-  font-size: 0.78rem;
-  line-height: 1.55;
+  font-size: 0.9rem;
+  line-height: 1.6;
 }
 
 .studio-experience-meta {
@@ -848,8 +924,8 @@ a:active {
   gap: 7px 16px;
   padding-top: 16px;
   border-top: 1px solid var(--color-rule);
-  font-size: 0.78rem;
-  line-height: 1.5;
+  font-size: 0.9rem;
+  line-height: 1.55;
 }
 
 .studio-skills h3 {
@@ -886,7 +962,7 @@ a:active {
   justify-content: space-between;
   gap: 4px 12px;
   margin: 0;
-  font-size: 0.8rem;
+  font-size: 0.9rem;
 }
 
 .studio-development-course span,
@@ -896,8 +972,8 @@ a:active {
 
 .studio-development-description {
   margin: 6px 0 0;
-  font-size: 0.76rem;
-  line-height: 1.55;
+  font-size: 0.88rem;
+  line-height: 1.6;
 }
 
 .studio-process {
@@ -931,19 +1007,20 @@ a:active {
 .studio-process h3 {
   margin: 1px 0 3px;
   font-family: var(--font-display);
-  font-size: 0.96rem;
+  font-size: 1.08rem;
   font-weight: 700;
+  letter-spacing: -0.02em;
 }
 
 .studio-process p {
   margin: 0;
   color: var(--color-ink-soft);
-  font-size: 0.75rem;
-  line-height: 1.5;
+  font-size: 0.9rem;
+  line-height: 1.55;
 }
 
 .studio-flow-content {
-  padding: 0 0 22px;
+  padding: 14px 22px 24px;
 }
 
 .studio-tech-grid {
@@ -971,7 +1048,7 @@ a:active {
   max-width: 52ch;
   margin: 0;
   color: var(--color-ink-soft);
-  font-size: 0.84rem;
+  font-size: 0.9rem;
   line-height: 1.6;
 }
 
@@ -992,8 +1069,8 @@ a:active {
 .studio-tech-grid dt,
 .studio-tech-grid dd {
   margin: 0;
-  font-size: 0.77rem;
-  line-height: 1.45;
+  font-size: 0.84rem;
+  line-height: 1.5;
 }
 
 .studio-tech-grid dt {
@@ -1009,7 +1086,7 @@ a:active {
 .studio-observability {
   margin: 13px 0 0;
   color: var(--color-ink-soft);
-  font-size: 0.75rem;
+  font-size: 0.82rem;
   line-height: 1.55;
 }
 
@@ -1115,6 +1192,7 @@ a:active {
   .studio-chat {
     height: auto;
     min-height: 0;
+    overflow: visible;
     padding: 25px 20px 20px;
     border-radius: 22px 5px 22px 5px;
   }
@@ -1131,11 +1209,10 @@ a:active {
 
   .studio-chat-opening--active {
     grid-template-columns: minmax(0, 1fr);
-    grid-template-areas: "heading";
-  }
-
-  .studio-chat-opening--active .studio-chat-portrait {
-    display: none;
+    grid-template-areas:
+      "heading"
+      "starters";
+    row-gap: 8px;
   }
 
   .studio-chat-heading {
@@ -1207,6 +1284,17 @@ a:active {
     padding-top: 13px;
   }
 
+  .studio-composer-dock {
+    position: sticky;
+    z-index: 2;
+    bottom: 0;
+    margin: 0 -20px -20px;
+    padding: 0 20px max(8px, env(safe-area-inset-bottom));
+    border-top: 1px solid var(--color-panel-line);
+    border-radius: 0 0 22px 5px;
+    background: var(--color-panel);
+  }
+
   .studio-composer-input {
     min-height: 49px;
     padding: 12px 11px;
@@ -1250,13 +1338,14 @@ a:active {
   }
 
   .studio-details-item summary {
-    min-height: 61px;
-    grid-template-columns: minmax(0, 1fr) 24px;
-    gap: 8px;
+    min-height: 78px;
+    grid-template-columns: minmax(0, 1fr) auto;
+    gap: 10px;
+    padding: 13px 14px;
   }
 
   .studio-details-item summary > span:first-child {
-    font-size: 1rem;
+    font-size: 1.2rem;
   }
 
   .studio-details-note {
@@ -1270,13 +1359,18 @@ a:active {
 
   .studio-experience-date {
     color: var(--color-ink);
-    font-size: 0.64rem;
+    font-size: 0.72rem;
+  }
+
+  .studio-profile-content,
+  .studio-flow-content {
+    padding: 15px 14px 21px;
   }
 
   .studio-skills {
     grid-template-columns: minmax(90px, 0.4fr) minmax(0, 1fr);
     gap: 7px 10px;
-    font-size: 0.72rem;
+    font-size: 0.84rem;
   }
 
   .studio-footer {
