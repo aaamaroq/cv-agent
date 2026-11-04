@@ -75,6 +75,91 @@ class ExtractJsonTests(unittest.TestCase):
 
 
 class CheckOutputTests(unittest.TestCase):
+    def test_deterministically_rejects_unsupported_kafka_pipeline_claim(self):
+        llm = FakeLLM('{"ok": true, "reason": ""}')
+        result = guardrails.check_output(
+            llm,
+            "¿Usó Kafka profesionalmente en el pipeline de procesamiento de pedidos?",
+            "Sí, Adrián utilizó Apache Kafka en el pipeline de procesamiento de pedidos. "
+            "Kafka ayudó a procesar eventos en tiempo real.",
+            "src",
+        )
+        self.assertEqual(
+            result,
+            (
+                False,
+                "The sources list Kafka as a skill but do not document its use in "
+                "the order-processing pipeline; that pipeline is documented with Spark.",
+            ),
+        )
+        self.assertFalse(llm.structured_called)
+        self.assertFalse(llm.raw_called)
+
+    def test_allows_explicit_boundary_for_kafka_pipeline_question(self):
+        llm = FakeLLM('{"ok": true, "reason": ""}')
+        self.assertEqual(
+            guardrails.check_output(
+                llm,
+                "¿Usó Kafka profesionalmente en el pipeline de procesamiento de pedidos?",
+                "El CV incluye Apache Kafka en la lista de habilidades, pero no "
+                "documenta su uso en el pipeline de pedidos, que describe como basado en Spark.",
+                "src",
+            ),
+            (True, ""),
+        )
+
+    def test_unrelated_missing_metric_does_not_hide_kafka_claim(self):
+        llm = FakeLLM('{"ok": true, "reason": ""}')
+        result = guardrails.check_output(
+            llm,
+            "¿Usó Kafka profesionalmente en el pipeline de procesamiento de pedidos?",
+            "No hay métricas documentadas; Kafka se utilizó en el pipeline de pedidos.",
+            "src",
+        )
+        self.assertFalse(result[0])
+
+    def test_deterministically_rejects_english_answer_to_spanish_question(self):
+        llm = FakeLLM('{"ok": true, "reason": ""}')
+        result = guardrails.check_output(
+            llm,
+            "¿Qué experiencia tiene Adrián con MCP?",
+            "Adrián built MCP servers for a banking client.",
+            "src",
+        )
+        self.assertEqual(
+            result,
+            (False, "Answer must be in Spanish, matching the user's language."),
+        )
+        self.assertFalse(llm.structured_called)
+        self.assertFalse(llm.raw_called)
+
+    def test_deterministically_rejects_spanish_answer_to_english_question(self):
+        llm = FakeLLM('{"ok": true, "reason": ""}')
+        result = guardrails.check_output(
+            llm,
+            "What experience does Adrián have with MCP?",
+            "Adrián construyó servidores MCP para un cliente bancario.",
+            "src",
+        )
+        self.assertEqual(
+            result,
+            (False, "Answer must be in English, matching the user's language."),
+        )
+        self.assertFalse(llm.structured_called)
+        self.assertFalse(llm.raw_called)
+
+    def test_accepts_matching_language_with_accented_name(self):
+        llm = FakeLLM('{"ok": true, "reason": ""}')
+        self.assertEqual(
+            guardrails.check_output(
+                llm,
+                "What has Adrián done with Spark?",
+                "Adrián built a Spark pipeline for order processing.",
+                "src",
+            ),
+            (True, ""),
+        )
+
     def test_propagates_rejection(self):
         llm = FakeLLM('{"ok": false, "reason": "overclaim: PhD"}')
         self.assertEqual(
@@ -159,6 +244,40 @@ class SourceOfTruthTests(unittest.TestCase):
         sot = prompts.source_of_truth()
         self.assertIn("## CV", sot)
         self.assertIn("## Project notes", sot)
+
+
+class LanguageDetectionTests(unittest.TestCase):
+    def test_detects_spanish_without_relying_on_accents(self):
+        self.assertTrue(guardrails.is_spanish_text("Adrian tiene experiencia con MCP"))
+
+    def test_english_question_with_accented_name_is_not_spanish(self):
+        self.assertFalse(guardrails.is_spanish_text("What has Adrián done with Spark?"))
+
+    def test_fallback_matches_question_language(self):
+        self.assertEqual(
+            guardrails.fallback_message("What has Adrián done with Spark?"),
+            guardrails.FALLBACK_MESSAGE,
+        )
+        self.assertEqual(
+            guardrails.fallback_message("¿Qué experiencia tiene Adrián con Spark?"),
+            guardrails.FALLBACK_MESSAGE_ES,
+        )
+
+    def test_fallback_answers_stress_question_with_documented_boundary(self):
+        self.assertIn(
+            "not a specific routine or example",
+            guardrails.fallback_message(
+                "How do you handle tight deadlines and stressful situations?"
+            ),
+        )
+
+    def test_fallback_distinguishes_kafka_skill_from_spark_pipeline(self):
+        self.assertIn(
+            "no documenta que se usara",
+            guardrails.fallback_message(
+                "¿Usó Kafka profesionalmente en el pipeline de procesamiento de pedidos?"
+            ),
+        )
 
 
 def _load_gen_brief():

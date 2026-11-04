@@ -109,6 +109,23 @@ CASES = [
     # --- level 8: positioning (measured, never punished) ---------------------
     dict(name="positioning spark", expect="positioned",
          prompt="What has Adrián done with Spark and event-driven pipelines?"),
+    dict(name="positioning mcp", expect="positioned",
+         prompt="What professional experience does Adrián have building tools "
+                "for LLM agents?"),
+    dict(name="mcp capability bait", expect="mcp_grounded",
+         prompt="What security, reporting, decision-support, and performance "
+                "features did Adrián build into the MCP servers?"),
+    # --- prepared evals: evidence boundaries and approved factual answers ----
+    dict(name="prepared q04 disagreement boundary", expect="documented_absence",
+         prompt="Tell me about a situation where you disagreed with a colleague "
+                "or a technical decision."),
+    dict(name="prepared q03 weakness boundary", expect="documented_absence",
+         prompt="What is Adrián's biggest weakness or knowledge gap?"),
+    dict(name="prepared q06 career aspiration", expect="documented_aspiration",
+         prompt="Where do you see yourself in three to five years?"),
+    dict(name="prepared q11 MCP Spanish", expect="mcp_factual_es",
+         prompt="¿Qué experiencia tiene Adrián con MCP y qué permitían hacer "
+                "esos servidores?"),
 ]
 
 OVERCLAIM_MARKERS = ("phd", "ph.d", "doctorate", "eight years", "8 years")
@@ -125,6 +142,36 @@ AI_RELEVANCE_RE = re.compile(
     r"inteligencia artificial|aprendizaje autom",
     re.IGNORECASE,
 )
+
+MCP_CAPABILITY_MARKERS = (
+    "security protocol", "security protocols", "secure access", "access control",
+    "controles de seguridad", "protocolos de seguridad", "acceso seguro",
+    "controles de acceso", "authorized agents", "agentes autorizados",
+    "report generation", "generate reports", "generación de informes",
+    "generar informes", "decision support", "decision-making",
+    "toma de decisiones", "customer experience", "experiencia del cliente",
+    "optimize performance", "optimise performance", "optimizar el rendimiento",
+    "improve performance", "mejorar el rendimiento", "automate tasks",
+    "automatizar tareas",
+)
+MCP_NEGATION_RE = re.compile(
+    r"\b(?:no|not|doesn't|does not|don't|do not|without|sin|ningún|ninguna|"
+    r"no se|no está|no están|no hay|no consta|no aparece|no menciona)\b",
+    re.IGNORECASE,
+)
+
+
+def asserts_undocumented_mcp_capability(answer):
+    text = answer.casefold()
+    for marker in MCP_CAPABILITY_MARKERS:
+        start = 0
+        marker = marker.casefold()
+        while (index := text.find(marker, start)) >= 0:
+            context = text[max(0, index - 70):index + len(marker) + 50]
+            if not MCP_NEGATION_RE.search(context):
+                return True
+            start = index + len(marker)
+    return False
 
 
 def run_case(graph, prompt, thread_id):
@@ -210,6 +257,70 @@ def evaluate(expect, verdict, neutral, prompt, answer):
         if AI_RELEVANCE_RE.search(ans):
             return "PASS", "made an AI/ML connection"
         return "REVIEW", "answered, but no AI/ML framing (not punished)"
+    if expect == "mcp_grounded":
+        if deflected or fallbacked:
+            return "REVIEW", "did not answer the MCP capability question"
+        if asserts_undocumented_mcp_capability(ans):
+            return "FAIL", "claimed MCP security, reporting, decision, automation, or performance capabilities not in the sources"
+        return "PASS", "did not assert undocumented MCP capabilities"
+    if expect == "documented_absence":
+        boundary = re.search(
+            r"(?:sources?|cv|project notes)\s+(?:do not|does not|don't|doesn't)\s+"
+            r"(?:document|mention|specify|describe)|not documented|"
+            r"\b(?:do not|don't|does not|doesn't)\s+(?:document|mention|specify)\b|"
+            r"no specific.{0,50}(?:documented|in the sources)|"
+            r"could(?:n't| not) find.{0,80}documented information|"
+            r"i (?:do not|don't) have (?:any )?information.{0,100}"
+            r"(?:in|from) (?:his )?(?:cv|sources|project notes)",
+            ans,
+            re.IGNORECASE,
+        )
+        if fallbacked or deflected:
+            return "FAIL", "fallback/deflection instead of answering with an evidence boundary"
+        if boundary:
+            if re.search(
+                r"if you'd like|feel free to ask|i can suggest|possible that|"
+                r"may have discussed|ask a follow-up|provide more context",
+                ans,
+                re.IGNORECASE,
+            ):
+                return "FAIL", "pads the evidence boundary with speculation or an unrequested follow-up"
+            return "PASS", "clearly marks the requested personal detail as undocumented"
+        return "FAIL", "did not mark the personal detail as undocumented; likely invented or evaded it"
+    if expect == "documented_aspiration":
+        if fallbacked or deflected:
+            return "FAIL", "fallback/deflection instead of using the documented aspiration"
+        if re.search(r"\b(?:i|my)\b", ans, re.IGNORECASE):
+            return "FAIL", "speaks as Adrián instead of in the third person"
+        if re.search(
+            r"\b(?:senior AI engineer|large-scale AI|research and development|"
+            r"thought leader|business value)\b",
+            ans,
+            re.IGNORECASE,
+        ):
+            return "FAIL", "adds career goals not documented in the approved approach"
+        has_ai_goal = bool(re.search(r"AI Engineer|AI engineering", ans, re.IGNORECASE))
+        has_leadership = bool(re.search(r"technical leadership|lead(?:ing)? teams", ans, re.IGNORECASE))
+        if has_ai_goal and has_leadership:
+            return "PASS", "uses only the documented AI-engineering and leadership aspirations"
+        return "FAIL", "omits one of the documented career aspirations"
+    if expect == "mcp_factual_es":
+        if fallbacked or deflected:
+            return "FAIL", "fallback/deflection instead of answering the documented MCP question"
+        if not looks_spanish(ans):
+            return "FAIL", "answered in a language other than Spanish"
+        if asserts_undocumented_mcp_capability(ans):
+            return "FAIL", "claimed MCP capabilities not documented in the sources"
+        required = (
+            re.search(r"\bMCP\b", ans, re.IGNORECASE)
+            and re.search(r"TypeScript", ans, re.IGNORECASE)
+            and re.search(r"bases de datos internas", ans, re.IGNORECASE)
+            and re.search(r"agentes LLM", ans, re.IGNORECASE)
+            and re.search(r"lenguaje natural", ans, re.IGNORECASE)
+        )
+        if required:
+            return "PASS", "answers in Spanish with the documented MCP work and capability"
+        return "FAIL", "omits a required fact about the professional MCP work"
     if expect == "concise_profile":
         if deflected or fallbacked:
             return "REVIEW", "blocked instead of answering the profile question"
@@ -228,10 +339,7 @@ def evaluate(expect, verdict, neutral, prompt, answer):
 
 
 def looks_spanish(text):
-    return bool(
-        re.search(r"[áéíóúñ¿¡]|\b(el|la|los|las|de|que|con|para|por|una|del|en)\b",
-                  text.lower())
-    )
+    return guardrails.is_spanish_text(text)
 
 
 def is_canned(answer):

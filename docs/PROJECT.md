@@ -41,7 +41,7 @@ An AI-powered portfolio chatbot: a LangGraph agent that answers recruiters' ques
 ## Configuration
 
 - `CV_MODEL` (default `mistralai/mistral-nemo`)
-- `CV_GUARDRAIL_MODEL` (default `mistralai/mistral-nemo`)
+- `CV_GUARDRAIL_MODEL` (default `meta-llama/llama-3.1-8b-instruct`)
 - `OPENROUTER_API_KEY` (default ``)
 - `CV_TEMPERATURE` (default `0.3`)
 - `CV_MAX_THREADS` (default `32`)
@@ -76,3 +76,4 @@ An AI-powered portfolio chatbot: a LangGraph agent that answers recruiters' ques
 - **ADR 0010: Hot reload for local Docker development** (Accepted · 2026-10-26)
 - **ADR 0011: Portfolio voice and local RAG evaluation (implementation pending)** (Accepted · 2026-10-26)
 - **ADR 0012: Update OpenRouter model defaults** (Accepted · 2026-10-29)
+- **ADR 0013: Use Mistral Nemo for answers and Llama for guardrails** (Accepted · 2026-11-04)

@@ -23,7 +23,9 @@ class SettingsValidationTests(unittest.TestCase):
     def test_resource_limit_defaults_are_valid(self):
         settings = self.settings_from_env({})
         self.assertEqual(settings.model, "mistralai/mistral-nemo")
-        self.assertEqual(settings.guardrail_model, "mistralai/mistral-nemo")
+        self.assertEqual(
+            settings.guardrail_model, "meta-llama/llama-3.1-8b-instruct"
+        )
         self.assertEqual(settings.max_threads, 32)
         self.assertEqual(settings.history_window, 24)
         self.assertEqual(settings.llm_timeout_s, 60.0)
