@@ -1,0 +1,44 @@
+{
+  "id": "acme",
+  "company_name": "Acme (demo)",
+  "target_role": "AI Engineer",
+  "themes": [
+    "enterprise LLM workflows",
+    "MCP servers",
+    "data processing with Spark"
+  ],
+  "welcome": {
+    "es": "Hola, equipo de Acme (perfil demo). Esta versión pone el foco en la experiencia documentada de Adrián con flujos de trabajo con LLMs, servidores MCP y procesamiento de datos. Las respuestas se basan en su CV y en las notas del proyecto.",
+    "en": "Hi, Acme team (demo profile). This version focuses on Adrián's documented experience with LLM workflows, MCP servers, and data processing. Answers are grounded in his CV and project notes."
+  },
+  "questions": {
+    "es": [
+      {
+        "label": "MCP y LLMs",
+        "question": "¿Qué experiencia profesional documenta el CV de Adrián con MCP y flujos de trabajo con LLMs?"
+      },
+      {
+        "label": "Datos y Spark",
+        "question": "¿Qué experiencia tiene Adrián con Spark y procesamiento de datos?"
+      },
+      {
+        "label": "Chatbot de portfolio",
+        "question": "¿Cómo funciona el chatbot de portfolio y qué partes están implementadas actualmente?"
+      }
+    ],
+    "en": [
+      {
+        "label": "MCP & LLMs",
+        "question": "What professional experience does Adrián's CV document with MCP and LLM workflows?"
+      },
+      {
+        "label": "Data & Spark",
+        "question": "What experience does Adrián have with Spark and data processing?"
+      },
+      {
+        "label": "Portfolio chatbot",
+        "question": "How does the portfolio chatbot work, and which parts are implemented today?"
+      }
+    ]
+  }
+}

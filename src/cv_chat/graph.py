@@ -113,7 +113,11 @@ def build_graph(settings: Settings) -> CompiledStateGraph:
         if state.get("input_verdict") == "loaded" and state.get("neutral_question"):
             question = state["neutral_question"]
         ok, reason = guardrails.check_output(
-            guardrail_llm, question, guardrails.message_text(last), source
+            guardrail_llm,
+            question,
+            guardrails.message_text(last),
+            source,
+            state.get("profile_context", ""),
         )
         if ok:
             return {"output_ok": True, "retries": state.get("retries", 0)}

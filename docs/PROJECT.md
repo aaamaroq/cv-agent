@@ -80,3 +80,4 @@ An AI-powered portfolio chatbot: a LangGraph agent that answers recruiters' ques
 - **ADR 0012: Update OpenRouter model defaults** (Accepted · 2026-10-29)
 - **ADR 0013: Use Mistral Nemo for answers and Llama for guardrails** (Accepted · 2026-11-04)
 - **ADR 0014: Curated recruiter profiles without conversation resumption** (Accepted · 2026-11-04)
+- **ADR 0015: Offer-grounded recruiter profiles with an unchanged general portfolio** (Accepted · 2026-11-04)

@@ -1,0 +1,187 @@
+{
+  "id": "conversational-crm-agentic-runtime",
+  "company_name": "Conversational CRM",
+  "target_role": "AI Engineer — Agentic Runtime",
+  "themes": [
+    "Professional software and LLM work",
+    "Agent runtime, tools and grounding",
+    "Evaluation and observability",
+    "Backend, latency and quality",
+    "Search and commerce"
+  ],
+  "requirements": [
+    {
+      "id": "software-experience",
+      "label": "Professional software experience",
+      "description": "At least two years of professional software engineering experience.",
+      "priority": "required"
+    },
+    {
+      "id": "professional-llm-work",
+      "label": "Professional LLM work",
+      "description": "Professional experience with an LLM capability used by real users.",
+      "priority": "required"
+    },
+    {
+      "id": "agent-runtime",
+      "label": "Agent runtime, tools and grounding",
+      "description": "Build agent runtime components for context, tool or retrieval orchestration, grounding and guardrails.",
+      "priority": "required"
+    },
+    {
+      "id": "rag-quality",
+      "label": "Retrieval and response quality",
+      "description": "Understand retrieval systems and improve answer quality with evaluation and multilingual behavior.",
+      "priority": "required"
+    },
+    {
+      "id": "tracing-evaluation",
+      "label": "Tracing and evaluation",
+      "description": "Use traces and evaluation datasets to identify and prevent quality problems.",
+      "priority": "required"
+    },
+    {
+      "id": "backend-measurement",
+      "label": "Backend and measurement",
+      "description": "Build backend services and measure latency, cost and quality when improving LLM features.",
+      "priority": "required"
+    },
+    {
+      "id": "commerce-search",
+      "label": "Commerce and search systems",
+      "description": "Experience with commerce workflows or search infrastructure is useful.",
+      "priority": "preferred"
+    }
+  ],
+  "evidence": [
+    {
+      "requirement_id": "software-experience",
+      "source": "cv_summary",
+      "evidence_type": "professional experience",
+      "relation": "direct",
+      "quote": "Software engineer focused on AI/LLM Engineering, with over three years of experience across LLM integration, data pipelines and distributed backend systems."
+    },
+    {
+      "requirement_id": "professional-llm-work",
+      "source": "cv_professional",
+      "evidence_type": "professional experience",
+      "relation": "related",
+      "quote": "Built MCP (Model Context Protocol) servers to support enterprise LLM workflows."
+    },
+    {
+      "requirement_id": "professional-llm-work",
+      "source": "cv_projects",
+      "evidence_type": "personal project",
+      "relation": "related",
+      "quote": "Designed a LangGraph agent that answers recruiters' questions about the CV, grounded strictly in its source-of-truth documents."
+    },
+    {
+      "requirement_id": "agent-runtime",
+      "source": "cv_professional",
+      "evidence_type": "professional experience",
+      "relation": "related",
+      "quote": "Built MCP (Model Context Protocol) servers to support enterprise LLM workflows."
+    },
+    {
+      "requirement_id": "agent-runtime",
+      "source": "cv_projects",
+      "evidence_type": "personal project",
+      "relation": "related",
+      "quote": "Implemented input and output guardrails: a cheap classifier model neutralises loaded questions and blocks abuse and prompt injection; a critic reviews every draft for overclaims, leaks and ungrounded claims, fail-open by design."
+    },
+    {
+      "requirement_id": "rag-quality",
+      "source": "cv_skills",
+      "evidence_type": "listed skill",
+      "relation": "listed_only",
+      "quote": "grounded retrieval (RAG)"
+    },
+    {
+      "requirement_id": "rag-quality",
+      "source": "cv_development",
+      "evidence_type": "training",
+      "relation": "training_only",
+      "quote": "Agentic RAG, and agent monitoring and evaluation."
+    },
+    {
+      "requirement_id": "tracing-evaluation",
+      "source": "cv_projects",
+      "evidence_type": "personal project",
+      "relation": "direct",
+      "quote": "Added token gating and runtime limits, local observability (Langfuse and OpenTelemetry), Docker workflows and an offline test suite with a guardrail evaluation ladder."
+    },
+    {
+      "requirement_id": "tracing-evaluation",
+      "source": "project_notes",
+      "evidence_type": "personal project",
+      "relation": "direct",
+      "quote": "Adversarial robustness: prompt-injection and leading-question handling, verified by an evaluation harness (`scripts/guardrail_probe.py`)."
+    },
+    {
+      "requirement_id": "backend-measurement",
+      "source": "cv_professional",
+      "evidence_type": "professional experience",
+      "relation": "direct",
+      "quote": "Developed Java and Spring Boot microservices for distributed backend systems."
+    },
+    {
+      "requirement_id": "backend-measurement",
+      "source": "cv_professional",
+      "evidence_type": "professional experience",
+      "relation": "related",
+      "quote": "Improved service efficiency through caching and query optimization."
+    },
+    {
+      "requirement_id": "backend-measurement",
+      "source": "cv_projects",
+      "evidence_type": "personal project",
+      "relation": "related",
+      "quote": "Served the agent through FastAPI with streaming and a React/Tailwind chat UI; LLM access via OpenRouter with a main chat model and a low-cost guardrail model."
+    },
+    {
+      "requirement_id": "commerce-search",
+      "source": "cv_projects",
+      "evidence_type": "personal project",
+      "relation": "related",
+      "quote": "Full-stack e-commerce application built with Spring Boot, covering catalog, cart and checkout flows."
+    }
+  ],
+  "positioning": {
+    "es": "Adrián es ingeniero de software con más de tres años de experiencia en backend, sistemas distribuidos e IA aplicada.",
+    "en": "Adrián is a software engineer with over three years of experience in backend systems, distributed systems, and applied AI."
+  },
+  "welcome": {
+    "es": "¡Hola, equipo de Conversational CRM! He preparado esta página para facilitaros la revisión de la experiencia de Adrián para este puesto.",
+    "en": "Hi, Conversational CRM team! I put this page together to make it easier to review Adrián's experience for this role."
+  },
+  "questions": {
+    "es": [
+      {
+        "label": "Encaje con el puesto",
+        "question": "¿Por qué encaja la experiencia de Adrián con este rol de Agentic Runtime?"
+      },
+      {
+        "label": "Experiencia profesional con LLMs",
+        "question": "¿Qué experiencia profesional tiene Adrián con LLMs y sistemas conectados a ellos?"
+      },
+      {
+        "label": "Agentes y calidad",
+        "question": "¿Qué aporta su trabajo con agentes, guardrails y evaluación a este puesto?"
+      }
+    ],
+    "en": [
+      {
+        "label": "Fit for the role",
+        "question": "Why is Adrián's experience relevant to this Agentic Runtime role?"
+      },
+      {
+        "label": "Professional LLM experience",
+        "question": "What professional experience does Adrián have with LLMs and connected systems?"
+      },
+      {
+        "label": "Agents and quality",
+        "question": "How does his work with agents, guardrails, and evaluation relate to this role?"
+      }
+    ]
+  }
+}

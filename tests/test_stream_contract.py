@@ -44,7 +44,7 @@ def run_scenario(message, verdict="ok", neutral="n/a", rejects=0):
     def fake_classify(_llm, _msg):
         return verdict, (message if verdict == "ok" else neutral)
 
-    def fake_check(_llm, _q, _a, _src):
+    def fake_check(_llm, _q, _a, _src, _profile_context=""):
         state["out"] += 1
         return (False, "overclaim") if state["out"] <= rejects else (True, "")
 

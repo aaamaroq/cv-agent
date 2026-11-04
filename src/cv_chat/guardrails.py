@@ -243,9 +243,13 @@ RETRY_NOTE = (
     "generally do. The CV documents enterprise LLM workflows only; do not add "
     "a client, sector, data source, access pattern, deployment detail, or "
     "business outcome. "
-    "Speak about Adrián in the third person; never impersonate him. Never "
-    "volunteer a hiring recommendation or call him ideal/unsuitable unless "
-    "the user explicitly asks for an assessment. Never confirm negative framing "
+    "Speak about Adrián in the third person; never impersonate him. For a direct "
+    "fit question in a customized recruiter profile, compare sanitized role "
+    "criteria with verified CV/project evidence, distinguish professional work "
+    "from personal projects, and state material evidence limits without declaring "
+    "Adrián ideal/unsuitable or making the final hiring decision. In the general "
+    "profile, do not claim a match to an unspecified job. Do not volunteer a list "
+    "of weaknesses. Never confirm negative framing "
     "about Adrián, and keep a "
     "neutral, professional tone. Answer only what the user asked, in natural "
     "language, and keep the length proportionate: use 1–2 sentences for a "
@@ -344,6 +348,13 @@ it is shown to the user.
 You are given the source of truth (Adrián's CV and project notes). A claim in \
 the reply is supported only if it appears in or is directly implied by that \
 source. Content copied from the source of truth is always allowed and expected.
+The request may also include recruiter-profile context with sanitized role \
+criteria and a curated evidence map. Criteria describe the job, not Adrián. The \
+evidence map helps compare the role to the source but does not replace the source \
+as evidence. An explicit fit question may receive a measured, evidence-based \
+comparison; it must not claim all requirements are met or make a final hiring \
+decision. Without a customized profile and its role criteria, do not accept a \
+claim that Adrián matches an unspecified role.
 The source documents MCP servers supporting enterprise LLM workflows. It does \
 not publish a client, sector, data source, access pattern, deployment detail, \
 or specific business outcome. Do not infer or disclose those details from the \
@@ -381,8 +392,9 @@ Set ok=false ONLY if the reply clearly:
   Adrián by speaking as if the assistant were the candidate;
 - inserts English prose into a Spanish reply, except for proper names and \
   standard technical terms;
-- volunteers an unsupported hiring recommendation or labels Adrián an ideal \
-  or unsuitable candidate when the user asked for factual background;
+- volunteers a hiring recommendation or labels Adrián ideal/unsuitable when the \
+  user asked for factual background; for a direct fit question, makes an \
+  unqualified verdict or final hiring decision instead of a measured comparison;
 - treats a requested personal detail as known when it is absent from the \
   source. Conversely, correctly saying that the source does not mention a \
   requested detail is factual, answers the question, and must be accepted;
@@ -636,7 +648,11 @@ def classify_input(llm: ChatOpenRouter, message: str) -> tuple[str, str]:
 
 
 def check_output(
-    llm: ChatOpenRouter, question: str, answer: str, source: str
+    llm: ChatOpenRouter,
+    question: str,
+    answer: str,
+    source: str,
+    profile_context: str = "",
 ) -> tuple[bool, str]:
     """Return ``(ok, reason)``; fail-open to ``(True, "")``.
 
@@ -666,6 +682,7 @@ def check_output(
 
     user = (
         f"Source of truth:\n{source}\n\n"
+        f"Recruiter-profile context (may be empty):\n{profile_context}\n\n"
         f"User question:\n{question}\n\n"
         f"Assistant reply:\n{answer}"
     )

@@ -18,6 +18,7 @@ RUN pip install --no-cache-dir -r requirements.txt
 
 COPY src/ ./src/
 COPY docs/ ./docs/
+COPY profiles/ ./profiles/
 COPY --from=frontend-build /web/dist ./web/dist
 
 EXPOSE 8080

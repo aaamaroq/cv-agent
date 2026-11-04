@@ -29,9 +29,11 @@ class FakeLLM:
         self._structured_error = structured_error
         self.raw_called = False
         self.structured_called = False
+        self.last_input = None
 
-    def invoke(self, *_args, **_kwargs):
+    def invoke(self, *args, **_kwargs):
         self.raw_called = True
+        self.last_input = args[0] if args else _kwargs
         if self._error:
             raise self._error
         return SimpleNamespace(content=self._content)
@@ -40,8 +42,9 @@ class FakeLLM:
         outer = self
 
         class _Chain:
-            def invoke(self, *_a, **_k):
+            def invoke(self, *args, **kwargs):
                 outer.structured_called = True
+                outer.last_input = args[0] if args else kwargs
                 if outer._structured_error:
                     raise outer._structured_error
                 result = outer._structured
@@ -170,6 +173,17 @@ class CheckOutputTests(unittest.TestCase):
         llm = FakeLLM('{"ok": true, "reason": ""}')
         self.assertEqual(guardrails.check_output(llm, "q", "a", "src"), (True, ""))
 
+    def test_output_guardrail_receives_custom_role_context(self):
+        llm = FakeLLM('{"ok": true, "reason": ""}')
+        context = "Sanitized role criteria: agent runtime."
+
+        result = guardrails.check_output(
+            llm, "Why is Adrián relevant?", "He built MCP servers.", "src", context
+        )
+
+        self.assertEqual(result, (True, ""))
+        self.assertIn(context, str(llm.last_input))
+
     def test_fail_open_on_llm_error(self):
         llm = FakeLLM(error=RuntimeError("provider down"))
         self.assertEqual(guardrails.check_output(llm, "q", "a", "src"), (True, ""))
@@ -246,14 +260,25 @@ class SourceOfTruthTests(unittest.TestCase):
 
 
 class RecruiterProfilePromptTests(unittest.TestCase):
-    def test_profile_focus_is_an_input_but_explicitly_not_evidence(self):
+    def test_general_prompt_does_not_assume_offer_requirements(self):
         prompt = prompts.build_prompt().invoke(
-            {"messages": [], "profile_context": "Demo focus: MCP and data processing."}
+            {"messages": [], "profile_context": ""}
         )
 
         system_prompt = prompt.messages[0].content
-        self.assertIn("Demo focus: MCP and data processing.", system_prompt)
-        self.assertIn("It is not evidence about Adrián or the company", system_prompt)
+        self.assertIn("general portfolio has no job-offer criteria", system_prompt)
+        self.assertIn("do not claim that he matches an unspecified", system_prompt)
+
+    def test_custom_profile_context_is_available_as_role_context(self):
+        context = (
+            "Role criteria: Python backend. Evidence: personal project only."
+        )
+        prompt = prompts.build_prompt().invoke(
+            {"messages": [], "profile_context": context}
+        )
+
+        self.assertIn(context, prompt.messages[0].content)
+        self.assertIn("sanitized role criteria", prompt.messages[0].content)
 
 
 class LanguageDetectionTests(unittest.TestCase):

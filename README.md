@@ -36,13 +36,39 @@ Open http://localhost:5173
 
 ### Personalized recruiter link
 
-The root portfolio keeps the general recruiter greeting. The demo company
+The root portfolio keeps the general recruiter greeting, questions, and answer
+context; it never inherits criteria from a personalized route. The demo company
 profile is available at `http://localhost:8000/p/acme` when using the packaged
 app, or `http://localhost:5173/p/acme` in the Vite development stack. It changes
 the chat greeting, suggested questions, and the emphasis used when answering;
-all claims remain grounded in the CV and project notes. Profiles are curated in
-`src/cv_chat/profiles.py` and exposed as public presentation data through
-`GET /api/profiles/{profile_id}`.
+all claims remain grounded in the CV and project notes. Profiles live in
+`profiles/*.json`, are loaded by `src/cv_chat/profiles.py`, and are exposed as
+presentation data through `GET /api/profiles/{profile_id}`. Criteria and the
+evidence map stay server-side.
+
+An anonymized agentic-runtime role demo is also available at
+`http://localhost:5173/p/conversational-crm-agentic-runtime` in the development
+stack. The title remains the same as the general portfolio, while the friendly
+intro, evidence summary, and suggested questions help recruiters assess the role
+fit. It does not claim experience with offer requirements that the CV does not
+document.
+
+Generate a profile from a local UTF-8 job-offer text file:
+
+```bash
+OPENROUTER_API_KEY="sk-or-..." PYTHONPATH=src .venv/bin/python scripts/build_profile.py \
+  --id acme-ai-engineer --company Acme --role "AI Engineer" \
+  --offer /path/to/job-offer.txt
+```
+
+The one-time generator sends the offer, CV, and project notes to the configured
+OpenRouter model. It validates exact offer quotes for sanitized criteria and
+exact CV/project quotes for mapped evidence, then stores the criteria and the
+evidence map for server-side prompting. It does not store the raw offer or the
+offer quotes, and `GET /api/profiles/{profile_id}` does not expose the evidence
+map. Review the generated profile—especially the direct/related evidence labels
+and its positioning—before deploying it. It does not track later changes to
+either source; regenerate a profile manually when needed.
 
 Each page load starts a fresh chat thread. The backend keeps its in-memory
 context only for turns in that open thread; reloading or returning to the link
@@ -135,11 +161,13 @@ docs/PROJECT.md          # GENERATED project memory (see below — never hand-ed
 AGENTS.md                # rules for agents/humans working on this repo
 ADR/                     # architecture decision records
 scripts/
+  build_profile.py      # generates reviewed recruiter profiles from job offers
   gen_project_brief.py   # derives docs/PROJECT.md from the live repo
   guardrail_probe.py     # guardrail evaluation ladder
+profiles/                 # public profile JSON; never store raw offers here
 src/cv_chat/
   config.py              # settings
-  prompts.py             # loads cv.md + docs/PROJECT.md into the system prompt
+  prompts.py             # loads CV, project notes, and server-resolved profile focus
   guardrails.py          # input/output guardrail prompts + checks
   graph.py               # LangGraph: guardrail nodes + agent subgraph + checkpointer
   server.py              # FastAPI: endpoints, SSE streaming, and HTTP tracing

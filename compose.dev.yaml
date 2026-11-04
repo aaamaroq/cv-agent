@@ -6,6 +6,8 @@ services:
     volumes:
       - ./src:/app/src
       - ./docs:/app/docs
+      - ./scripts:/app/scripts
+      - ./profiles:/app/profiles
 
   frontend:
     build:

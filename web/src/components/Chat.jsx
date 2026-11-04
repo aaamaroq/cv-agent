@@ -155,14 +155,16 @@ export default function Chat({ language, profile, profileId }) {
   const empty = messages.length === 0
   const welcome = profile?.welcome?.[language] ?? copy.welcome
   const questions = profile?.questions?.[language] ?? copy.questions
+  const heading = copy.heading
+  const description = profile?.positioning?.[language] ?? copy.description
 
   return (
     <section className="studio-chat" aria-labelledby="chat-title">
       <div className={`studio-chat-opening${empty ? '' : ' studio-chat-opening--active'}`}>
         <header className="studio-chat-heading">
           <div className="studio-chat-title-group">
-            <h1 id="chat-title">{copy.heading}</h1>
-            <p>{copy.description}</p>
+            <h1 id="chat-title">{heading}</h1>
+            <p>{description}</p>
           </div>
         </header>
 
@@ -189,7 +191,13 @@ export default function Chat({ language, profile, profileId }) {
             <ul>
               {questions.map(({ label, question }) => (
                 <li key={label}>
-                  <button type="button" onClick={() => send(question)} disabled={busy}>
+                  <button
+                    type="button"
+                    title={question}
+                    aria-label={question}
+                    onClick={() => send(question)}
+                    disabled={busy}
+                  >
                     <span>{label}</span>
                     <svg viewBox="0 0 20 20" fill="none" aria-hidden="true">
                       <path d="M3 10h13m-5-5 5 5-5 5" />
@@ -202,7 +210,7 @@ export default function Chat({ language, profile, profileId }) {
         )}
       </div>
 
-      <div className="studio-conversation" role="log" aria-label={copy.heading} aria-live="polite">
+      <div className="studio-conversation" role="log" aria-label={heading} aria-live="polite">
         <div className="studio-message-list">
           {messages.map((message, index) => (
             <article className={`studio-message studio-message--${message.role}`} key={`${index}-${message.role}`}>

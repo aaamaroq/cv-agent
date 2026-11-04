@@ -1,6 +1,11 @@
-"""Curated public recruiter profiles and their server-side answer focus."""
+"""Load curated recruiter profiles and build server-side answer focus."""
 
+import json
 from dataclasses import dataclass
+
+from .config import REPO_ROOT
+
+PROFILES_DIR = REPO_ROOT / "profiles"
 
 
 @dataclass(frozen=True)
@@ -8,109 +13,130 @@ class RecruiterProfile:
     profile_id: str
     company_name: str | None
     target_role: str | None
-    focus_areas: tuple[str, ...]
-    prompt_context: str
+    themes: tuple[str, ...]
     welcome: dict[str, str]
     questions: dict[str, tuple[dict[str, str], ...]]
+    positioning: dict[str, str]
+    requirements: tuple[dict[str, str], ...]
+    evidence: tuple[dict[str, str], ...]
 
     def public_payload(self) -> dict:
+        """Return page copy only; keep role rubric and evidence map server-side."""
         return {
             "id": self.profile_id,
             "company_name": self.company_name,
             "target_role": self.target_role,
-            "focus_areas": list(self.focus_areas),
+            "focus_areas": list(self.themes),
             "welcome": self.welcome,
             "questions": {
                 language: list(questions)
                 for language, questions in self.questions.items()
             },
+            "positioning": self.positioning,
         }
+
+    @property
+    def prompt_context(self) -> str:
+        if not self.requirements:
+            if not self.themes:
+                return ""
+            themes = ", ".join(self.themes)
+            return (
+                f"Prioritize documented CV or project evidence relevant to these "
+                f"offer themes: {themes}. The themes are relevance guidance only, "
+                "not evidence about Adrián or the company. They do not define "
+                "the role's full requirements or establish a candidate match."
+            )
+
+        requirements = "\n".join(
+            f"- [{item['priority']}] {item['id']}: {item['description']}"
+            for item in self.requirements
+        )
+        evidence_by_requirement: dict[str, list[str]] = {}
+        for item in self.evidence:
+            evidence_by_requirement.setdefault(item["requirement_id"], []).append(
+                f"  - {item['evidence_type']} ({item['relation']}; {item['source']}): "
+                f"{item['quote']}"
+            )
+        evidence = "\n".join(
+            f"- {requirement['id']}:\n"
+            + "\n".join(evidence_by_requirement.get(requirement["id"], ["  - No mapped evidence."]))
+            for requirement in self.requirements
+        )
+        return (
+            f"Customized recruiter profile for {self.target_role or 'the target role'}.\n"
+            "The role criteria below are sanitized descriptions of the offer, not "
+            "facts about Adrián. The evidence map contains curated pointers to "
+            "verbatim CV/project excerpts; verify any candidate claim against the "
+            "source of truth above. 'Professional experience', 'personal project', "
+            "'training', and 'listed skill' are distinct evidence types. 'Related' "
+            "means transferable, not proof of the exact requirement.\n"
+            "Role criteria:\n"
+            f"{requirements}\n"
+            "Mapped evidence:\n"
+            f"{evidence}\n"
+            "When directly asked about fit, compare the most relevant documented "
+            "evidence with these criteria. Lead with the strongest professional "
+            "evidence; use personal projects as complementary evidence and label "
+            "them clearly. Do not present related, training, or listed-skill "
+            "evidence as direct professional experience. Do not claim that every "
+            "requirement is met or make a final hiring decision. Mention an "
+            "unverified required criterion only when it materially qualifies a "
+            "direct fit assessment or the recruiter asks about it; say the sources "
+            "do not specify it, rather than asserting the experience does not exist. "
+            "Do not volunteer a list of weaknesses."
+        )
 
 
 GENERAL_PROFILE = RecruiterProfile(
     profile_id="general",
     company_name=None,
     target_role=None,
-    focus_areas=(),
-    prompt_context="",
+    themes=(),
     welcome={},
     questions={},
+    positioning={},
+    requirements=(),
+    evidence=(),
 )
 
-ACME_PROFILE = RecruiterProfile(
-    profile_id="acme",
-    company_name="Acme (demo)",
-    target_role="AI Engineer",
-    focus_areas=("enterprise LLM workflows", "MCP servers", "data processing with Spark"),
-    prompt_context=(
-        "This is a demonstration profile for the fictional company Acme and an "
-        "AI Engineer role. Use its focus areas only to prioritize relevant facts "
-        "that the CV or project notes directly support: enterprise LLM workflows, "
-        "MCP servers, and data processing with Spark. This context is not evidence "
-        "about Adrián or Acme. Do not infer Acme's actual hiring requirements, "
-        "claim that Adrián matches them, or add experience beyond the sources."
-    ),
-    welcome={
-        "es": (
-            "Hola, equipo de Acme (perfil demo). Esta versión pone el foco en la "
-            "experiencia documentada de Adrián con flujos de trabajo con LLMs, "
-            "servidores MCP y procesamiento de datos. Las respuestas se basan "
-            "en su CV y en las notas del proyecto."
-        ),
-        "en": (
-            "Hi, Acme team (demo profile). This version focuses on Adrián's "
-            "documented experience with LLM workflows, MCP servers, and data "
-            "processing. Answers are grounded in his CV and project notes."
-        ),
-    },
-    questions={
-        "es": (
-            {
-                "label": "MCP y LLMs",
-                "question": (
-                    "¿Qué experiencia profesional documenta el CV de Adrián con "
-                    "MCP y flujos de trabajo con LLMs?"
-                ),
-            },
-            {
-                "label": "Datos y Spark",
-                "question": "¿Qué experiencia tiene Adrián con Spark y procesamiento de datos?",
-            },
-            {
-                "label": "Chatbot de portfolio",
-                "question": (
-                    "¿Cómo funciona el chatbot de portfolio y qué partes están "
-                    "implementadas actualmente?"
-                ),
-            },
-        ),
-        "en": (
-            {
-                "label": "MCP & LLMs",
-                "question": (
-                    "What professional experience does Adrián's CV document "
-                    "with MCP and LLM workflows?"
-                ),
-            },
-            {
-                "label": "Data & Spark",
-                "question": "What experience does Adrián have with Spark and data processing?",
-            },
-            {
-                "label": "Portfolio chatbot",
-                "question": (
-                    "How does the portfolio chatbot work, and which parts are "
-                    "implemented today?"
-                ),
-            },
-        ),
-    },
-)
 
-PROFILES = {
-    GENERAL_PROFILE.profile_id: GENERAL_PROFILE,
-    ACME_PROFILE.profile_id: ACME_PROFILE,
-}
+def _load_profiles() -> dict[str, RecruiterProfile]:
+    profiles = {GENERAL_PROFILE.profile_id: GENERAL_PROFILE}
+    for path in sorted(PROFILES_DIR.glob("*.json")):
+        data = json.loads(path.read_text(encoding="utf-8"))
+        requirements = tuple(data.get("requirements", ()))
+        requirement_ids = {item["id"] for item in requirements}
+        evidence = tuple(data.get("evidence", ()))
+        for item in evidence:
+            if item["requirement_id"] not in requirement_ids:
+                raise ValueError(
+                    f"Profile {path.name} evidence references unknown requirement "
+                    f"{item['requirement_id']!r}"
+                )
+        profile = RecruiterProfile(
+            profile_id=data["id"],
+            company_name=data.get("company_name"),
+            target_role=data.get("target_role"),
+            themes=tuple(data.get("themes", ())),
+            welcome=data.get("welcome", {}),
+            questions={
+                language: tuple(questions)
+                for language, questions in data.get("questions", {}).items()
+            },
+            positioning=data.get("positioning", {}),
+            requirements=requirements,
+            evidence=evidence,
+        )
+        if profile.profile_id != path.stem:
+            raise ValueError(f"Profile id must match its filename: {path.name}")
+        if profile.profile_id in profiles:
+            raise ValueError(f"Duplicate recruiter profile id: {profile.profile_id}")
+        profiles[profile.profile_id] = profile
+    return profiles
+
+
+PROFILES = _load_profiles()
 
 
 def get_profile(profile_id: str) -> RecruiterProfile:

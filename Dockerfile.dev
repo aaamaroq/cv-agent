@@ -9,6 +9,8 @@ COPY requirements.txt ./
 RUN pip install --no-cache-dir -r requirements.txt
 COPY src/ ./src/
 COPY docs/ ./docs/
+COPY scripts/ ./scripts/
+COPY profiles/ ./profiles/
 
 EXPOSE 8000
-CMD ["uvicorn", "cv_chat.server:app", "--host", "0.0.0.0", "--port", "8000", "--reload", "--reload-dir", "/app/src", "--reload-dir", "/app/docs"]
+CMD ["uvicorn", "cv_chat.server:app", "--host", "0.0.0.0", "--port", "8000", "--reload", "--reload-dir", "/app/src", "--reload-dir", "/app/docs", "--reload-dir", "/app/scripts", "--reload-dir", "/app/profiles", "--reload-include", "*.json"]

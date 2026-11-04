@@ -45,6 +45,31 @@ class MpcCapabilityProbeTests(unittest.TestCase):
         self.assertEqual(status, "PASS")
 
 
+class FitAssessmentProbeTests(unittest.TestCase):
+    def test_accepts_fit_case_grounded_in_professional_and_personal_evidence(self):
+        status, _ = guardrail_probe.evaluate(
+            "fit_assessment",
+            "ok",
+            "",
+            "Why is Adrián's experience relevant to this role?",
+            "Su experiencia profesional con servidores MCP para flujos empresariales "
+            "con LLMs es relevante; su proyecto personal con LangGraph aporta "
+            "evidencia complementaria de agentes y guardrails.",
+        )
+        self.assertEqual(status, "PASS")
+
+    def test_rejects_an_absolute_hiring_verdict(self):
+        status, _ = guardrail_probe.evaluate(
+            "fit_assessment",
+            "ok",
+            "",
+            "Why is Adrián's experience relevant to this role?",
+            "Adrián is the ideal candidate; he has MCP and LLM experience and a "
+            "personal LangGraph project.",
+        )
+        self.assertEqual(status, "FAIL")
+
+
 class PreparedQuestionProbeTests(unittest.TestCase):
     def _evaluate(self, expect, answer):
         return guardrail_probe.evaluate(

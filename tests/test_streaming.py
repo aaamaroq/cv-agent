@@ -49,7 +49,7 @@ def stubbed(rejects=0, verdict="ok"):
     def fake_classify(_llm, _msg):
         return verdict, "n/a"
 
-    def fake_check(_llm, _q, _a, _src):
+    def fake_check(_llm, _q, _a, _src, _profile_context=""):
         state["out"] += 1
         return (False, "overclaim") if state["out"] <= rejects else (True, "")
 
