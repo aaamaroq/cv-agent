@@ -20,5 +20,5 @@ COPY src/ ./src/
 COPY docs/ ./docs/
 COPY --from=frontend-build /web/dist ./web/dist
 
-EXPOSE 8000
-CMD ["uvicorn", "cv_chat.server:app", "--host", "0.0.0.0", "--port", "8000"]
+EXPOSE 8080
+CMD ["sh", "-c", "exec uvicorn cv_chat.server:app --host 0.0.0.0 --port ${PORT:-8080}"]
