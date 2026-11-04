@@ -6,7 +6,6 @@ const COPY = {
     languageLabel: 'Idioma',
     focus: 'AI Engineer',
     location: 'Madrid',
-    profileAlt: 'Retrato de Adrián Amaro',
     bannerAlt: 'Paisaje panorámico pintado de un camino entre campos y árboles.',
     linkedIn: 'LinkedIn',
     introduction: 'Ingeniero de software con más de tres años de experiencia en integración de LLM, pipelines de datos y sistemas backend distribuidos.',
@@ -64,7 +63,6 @@ const COPY = {
     languageLabel: 'Language',
     focus: 'AI Engineer',
     location: 'Madrid',
-    profileAlt: 'Portrait of Adrián Amaro',
     bannerAlt: 'Panoramic painted landscape of a path between fields and trees.',
     linkedIn: 'LinkedIn',
     introduction: 'Software engineer with 3+ years of experience across LLM integration, data pipelines, and distributed backend systems.',
@@ -251,13 +249,6 @@ export default function App() {
     <div className="studio-app">
       <header className="studio-header">
         <a className="studio-brand" href="#inicio" aria-label="Adrián Amaro">
-          <img
-            className="studio-brand-avatar"
-            src="/images/adrian-amaro-profile.webp"
-            alt={copy.profileAlt}
-            fetchPriority="high"
-            decoding="async"
-          />
           <span className="studio-brand-copy">
             <strong>Adrián Amaro</strong>
             <span>{copy.focus} <i aria-hidden="true">·</i> {copy.location}</span>

@@ -5,11 +5,15 @@ const COPY = {
   es: {
     heading: 'Un portfolio de AI Engineering',
     description: 'Pregunta por la experiencia de Adrián en IA, datos, software y proyectos.',
+    portraitAlt: 'Retrato de Adrián Amaro al aire libre.',
     welcome:
       'Hola, soy el asistente del portfolio de Adrián. Puedes preguntarme sobre su experiencia, proyectos y herramientas de IA, datos y software. Estoy aquí para facilitar tu revisión para puestos de AI Engineer, con respuestas basadas en su CV.',
     suggested: 'Empieza por aquí',
     questions: [
-      { label: 'IA y LangChain', question: '¿Qué experiencia tiene con IA y LangChain?' },
+      {
+        label: 'Trayectoria profesional',
+        question: '¿Qué experiencia y trayectoria profesional aporta Adrián para un puesto de AI Engineer?',
+      },
       { label: 'Datos y Spark', question: '¿Qué ha hecho con Spark y procesamiento de datos?' },
       { label: 'Este asistente', question: '¿Cómo funciona este asistente de portfolio?' },
     ],
@@ -26,11 +30,15 @@ const COPY = {
   en: {
     heading: 'An AI engineering portfolio',
     description: "Ask about Adrián's experience in AI, data, software, and projects.",
+    portraitAlt: 'Portrait of Adrián Amaro outdoors.',
     welcome:
       "Hi, I'm Adrián's portfolio assistant. Ask about his experience, projects, and AI, data, or software tools. I'm here to make reviewing his profile for AI Engineer roles easier, with answers grounded in his CV.",
     suggested: 'Start here',
     questions: [
-      { label: 'AI & LangChain', question: 'What experience does he have with AI and LangChain?' },
+      {
+        label: 'Career experience',
+        question: 'What experience and career background does Adrián bring to an AI Engineer role?',
+      },
       { label: 'Data & Spark', question: 'What has he done with Spark and data processing?' },
       { label: 'This assistant', question: 'How does this portfolio assistant work?' },
     ],
@@ -79,7 +87,7 @@ export default function Chat({ language, profile, profileId }) {
     })
   }
 
-  async function send(text) {
+  async function send(text, { retry = false } = {}) {
     const message = text.trim()
     if (!message || busy) return
 
@@ -87,11 +95,18 @@ export default function Chat({ language, profile, profileId }) {
     setInput('')
     if (textareaRef.current) textareaRef.current.style.height = ''
     setBusy(true)
-    setMessages((previous) => [
-      ...previous,
-      { role: 'user', content: message },
-      { role: 'assistant', content: '' },
-    ])
+    setMessages((previous) => {
+      const withoutRetriedQuestion =
+        retry && previous.at(-1)?.role === 'user' && previous.at(-1).content === message
+          ? previous.slice(0, -1)
+          : previous
+
+      return [
+        ...withoutRetriedQuestion,
+        { role: 'user', content: message },
+        { role: 'assistant', content: '' },
+      ]
+    })
 
     try {
       const response = await fetch('/api/chat', {
@@ -143,42 +158,51 @@ export default function Chat({ language, profile, profileId }) {
 
   return (
     <section className="studio-chat" aria-labelledby="chat-title">
-      <header className="studio-chat-heading">
-        <div className="studio-chat-title-group">
-          <h1 id="chat-title">{copy.heading}</h1>
-          <p>{copy.description}</p>
-        </div>
-        <svg className="studio-chat-mark" viewBox="0 0 104 104" fill="none" aria-hidden="true">
-          <path d="M8 67c10-10 20-10 30 0s20 10 30 0 20-10 28 0" />
-          <path d="M8 51c10-10 20-10 30 0s20 10 30 0 20-10 28 0" />
-          <path d="M8 35c10-10 20-10 30 0s20 10 30 0 20-10 28 0" />
-          <circle cx="83" cy="20" r="4" />
-        </svg>
-      </header>
+      <div className={`studio-chat-opening${empty ? '' : ' studio-chat-opening--active'}`}>
+        <header className="studio-chat-heading">
+          <div className="studio-chat-title-group">
+            <h1 id="chat-title">{copy.heading}</h1>
+            <p>{copy.description}</p>
+          </div>
+        </header>
 
-      <div className="studio-conversation" role="log" aria-label={copy.heading} aria-live="polite">
         {empty && (
-          <div className="studio-welcome">
+          <div className="studio-welcome-copy">
             <span className="studio-welcome-author">{copy.assistant}</span>
-            <p>{copy.welcome}</p>
-            <div className="studio-starters">
-              <h2>{copy.suggested}</h2>
-              <ul>
-                {copy.questions.map(({ label, question }) => (
-                  <li key={label}>
-                    <button type="button" onClick={() => send(question)} disabled={busy}>
-                      <span>{label}</span>
-                      <svg viewBox="0 0 20 20" fill="none" aria-hidden="true">
-                        <path d="M3 10h13m-5-5 5 5-5 5" />
-                      </svg>
-                    </button>
-                  </li>
-                ))}
-              </ul>
-            </div>
+            <p>{welcome}</p>
           </div>
         )}
 
+        <figure className="studio-chat-portrait">
+          <img
+            src="/images/adrian-amaro-profile.webp"
+            alt={copy.portraitAlt}
+            fetchPriority="high"
+            decoding="async"
+          />
+          <figcaption>Adrián Amaro</figcaption>
+        </figure>
+
+        {empty && (
+          <div className="studio-starters">
+            <h2>{copy.suggested}</h2>
+            <ul>
+              {questions.map(({ label, question }) => (
+                <li key={label}>
+                  <button type="button" onClick={() => send(question)} disabled={busy}>
+                    <span>{label}</span>
+                    <svg viewBox="0 0 20 20" fill="none" aria-hidden="true">
+                      <path d="M3 10h13m-5-5 5 5-5 5" />
+                    </svg>
+                  </button>
+                </li>
+              ))}
+            </ul>
+          </div>
+        )}
+      </div>
+
+      <div className="studio-conversation" role="log" aria-label={copy.heading} aria-live="polite">
         <div className="studio-message-list">
           {messages.map((message, index) => (
             <article className={`studio-message studio-message--${message.role}`} key={`${index}-${message.role}`}>
@@ -200,7 +224,7 @@ export default function Chat({ language, profile, profileId }) {
           <div className="studio-chat-error" role="alert">
             <p>{copy.error}</p>
             {lastQuestion && (
-              <button type="button" onClick={() => send(lastQuestion)}>
+              <button type="button" onClick={() => send(lastQuestion, { retry: true })}>
                 {copy.retry}
               </button>
             )}
