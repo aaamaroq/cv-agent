@@ -31,8 +31,8 @@ another paid call.
 - Set `CV_GUARDRAIL_MODEL` to `meta-llama/llama-3.1-8b-instruct` for input and
   output guardrails. Keep both settings independently overridable.
 - Enforce response-language matching deterministically before the output
-  classifier. For the documented Kafka/Spark case, reject claims linking Kafka
-  to the order-processing pipeline unless they state the evidence boundary.
+  classifier. Reject unsupported claims linking Kafka to the separately
+  documented Spark data pipeline.
 - Use question-specific safe fallbacks for the prepared deadline/stress and
   Kafka/pipeline gaps.
 - Keep human labels and the prepared acceptance criteria authoritative. Do not
@@ -46,8 +46,8 @@ another paid call.
   offline coverage only. A full hybrid run remains a separate, cost-bearing
   regression check and is not implied by this decision.
 - The deterministic Kafka check is intentionally narrow and grounded in the CV:
-  Kafka is listed as a skill, while the order-processing pipeline is documented
-  as using Spark. Revisit it if the source CV changes.
+  Kafka is listed as a skill, while a separate data-processing pipeline is
+  documented with Spark. Revisit it if the source CV changes.
 - OpenRouter availability, latency and pricing remain operational facts to
   verify; run targeted cases before spending on a broader evaluation.
 

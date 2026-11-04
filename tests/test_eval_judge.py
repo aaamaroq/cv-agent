@@ -18,35 +18,40 @@ SPEC.loader.exec_module(eval_judge)
 class ClaimAuditTests(unittest.TestCase):
     def test_verbatim_quote_supports_a_claim(self):
         audit = eval_judge.ClaimAudit(
-            claim="He built MCP servers in TypeScript.",
-            answer_quote="He built MCP servers in TypeScript.",
+            claim="He built MCP servers for enterprise LLM workflows.",
+            answer_quote="He built MCP servers for enterprise LLM workflows.",
             claim_type="cv_fact",
-            source_quotes=["Built MCP servers in TypeScript"],
+            source_quotes=[
+                "Built MCP (Model Context Protocol) servers to support enterprise LLM workflows"
+            ],
         )
 
         checked, blocking = eval_judge.validate_claim_audits(
-            "The CV says: Built MCP servers in TypeScript for a banking client.",
-            "He built MCP servers in TypeScript.",
+            "The CV says: Built MCP (Model Context Protocol) servers to support enterprise LLM workflows.",
+            "He built MCP servers for enterprise LLM workflows.",
             [audit],
         )
 
         self.assertFalse(blocking)
         self.assertTrue(checked[0]["supported"])
-        self.assertEqual(checked[0]["verified_quotes"], ["Built MCP servers in TypeScript"])
+        self.assertEqual(
+            checked[0]["verified_quotes"],
+            ["Built MCP (Model Context Protocol) servers to support enterprise LLM workflows"],
+        )
 
     def test_missing_or_non_verbatim_citation_blocks_cv_fact(self):
         audits = [
             eval_judge.ClaimAudit(
-                claim="He used Kafka in the order pipeline.",
-                answer_quote="He used Kafka in the order pipeline.",
+                claim="He used Kafka in the Spark data pipeline.",
+                answer_quote="He used Kafka in the Spark data pipeline.",
                 claim_type="cv_fact",
-                source_quotes=["He used Kafka in the order pipeline."],
+                source_quotes=["He used Kafka in the Spark data pipeline."],
             )
         ]
 
         checked, blocking = eval_judge.validate_claim_audits(
-            "Apache Kafka is in the skills list. The order pipeline used Spark.",
-            "He used Kafka in the order pipeline.",
+            "Apache Kafka is in the skills list. A separate data pipeline used Spark.",
+            "He used Kafka in the Spark data pipeline.",
             audits,
         )
 
@@ -184,11 +189,11 @@ class ClaimAuditTests(unittest.TestCase):
 class CriterionAssessmentTests(unittest.TestCase):
     def test_criterion_pass_requires_exact_quote_from_final_answer(self):
         criterion = "Answer in English and in third person."
-        answer = "Adrián built MCP servers for a banking client."
+        answer = "Adrián built MCP servers supporting enterprise LLM workflows."
         assessment = eval_judge.CriterionAssessment(
             criterion=criterion,
             met=True,
-            answer_quote="Adrián built MCP servers for a banking client.",
+            answer_quote="Adrián built MCP servers supporting enterprise LLM workflows.",
             rationale="The answer is in English and refers to Adrián in third person.",
         )
 

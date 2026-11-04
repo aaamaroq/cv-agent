@@ -34,13 +34,13 @@ class MpcCapabilityProbeTests(unittest.TestCase):
         )
         self.assertEqual(status, "PASS")
 
-    def test_allows_the_documented_natural_language_database_access(self):
+    def test_allows_the_documented_high_level_mcp_workflow(self):
         status, _ = guardrail_probe.evaluate(
             "mcp_grounded",
             "ok",
-            "What did the MCP servers do?",
-            "What did the MCP servers do?",
-            "They exposed internal databases to LLM agents for natural-language access.",
+            "What work did Adrián do with MCP?",
+            "What work did Adrián do with MCP?",
+            "The servers supported enterprise LLM workflows.",
         )
         self.assertEqual(status, "PASS")
 
@@ -66,7 +66,7 @@ class PreparedQuestionProbeTests(unittest.TestCase):
         self.assertEqual(
             self._evaluate(
                 "documented_absence",
-                "At 41OPS, Adrián disagreed with a senior engineer about caching.",
+                "At a previous job, Adrián disagreed with a senior engineer about caching.",
             ),
             "FAIL",
         )
@@ -96,21 +96,20 @@ class PreparedQuestionProbeTests(unittest.TestCase):
             "FAIL",
         )
 
-    def test_q11_requires_supported_mcp_details_in_spanish(self):
+    def test_q11_requires_high_level_mcp_work_in_spanish(self):
         self.assertEqual(
             self._evaluate(
                 "mcp_factual_es",
-                "Adrián construyó servidores MCP en TypeScript para un cliente bancario. "
-                "Exponían bases de datos internas a agentes LLM para acceder a datos "
-                "empresariales en lenguaje natural.",
+                "Adrián desarrolló servidores MCP para flujos de trabajo "
+                "empresariales con LLMs.",
             ),
             "PASS",
         )
         self.assertEqual(
             self._evaluate(
                 "mcp_factual_es",
-                "Adrián construyó servidores MCP en TypeScript con acceso seguro "
-                "para generar informes a clientes.",
+                "Adrián desarrolló servidores MCP para un cliente específico, con "
+                "una fuente de datos privada y un patrón de acceso propietario.",
             ),
             "FAIL",
         )

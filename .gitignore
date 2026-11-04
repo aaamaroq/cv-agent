@@ -13,3 +13,11 @@ evals/runs/
 evals/labels/
 evals/judgements/
 evals/reports/
+# local design-tool state and drafts
+.hallmark/
+.impeccable/
+/DESIGN.md
+/PRODUCT.md
+# evaluation notes intentionally kept local
+/docs/eval-rubric.md
+/docs/llm-evaluation-roadmap.md

@@ -117,25 +117,17 @@ a:active {
   text-decoration: none;
 }
 
-.studio-brand:active .studio-brand-mark {
-  background: var(--color-accent);
-  color: var(--color-accent-ink);
-}
-
-.studio-brand-mark {
-  display: grid;
+.studio-brand-avatar {
+  display: block;
   width: 44px;
   height: 44px;
   flex: 0 0 auto;
-  place-items: center;
+  border: 1px solid var(--color-panel-line);
+  padding: 2px;
   border-radius: 50%;
-  background: var(--color-sage);
-  color: var(--color-ink);
-  font-family: var(--font-display);
-  font-size: 0.86rem;
-  font-weight: 800;
-  letter-spacing: -0.1em;
-  padding-right: 0.1em;
+  background: var(--color-paper);
+  object-fit: cover;
+  object-position: center 40%;
 }
 
 .studio-brand-copy {
@@ -736,6 +728,23 @@ a:active {
   padding: 4px 0 24px;
 }
 
+.studio-profile-cover {
+  height: clamp(100px, 17vw, 168px);
+  overflow: hidden;
+  margin: 0 0 22px;
+  border: 1px solid var(--color-panel-line);
+  border-radius: 17px 4px 17px 4px;
+  background: var(--color-panel);
+}
+
+.studio-profile-cover img {
+  display: block;
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  object-position: center 56%;
+}
+
 .studio-profile-intro {
   margin: 0 0 20px;
   color: var(--color-ink-soft);
@@ -772,7 +781,6 @@ a:active {
 }
 
 .studio-experience-meta,
-.studio-experience-client,
 .studio-experience-description,
 .studio-experience-detail {
   margin: 5px 0 0;
@@ -784,10 +792,6 @@ a:active {
 .studio-experience-meta {
   color: var(--color-ink);
   font-weight: 600;
-}
-
-.studio-experience-client {
-  font-size: 0.72rem;
 }
 
 .studio-experience-detail {
@@ -1039,12 +1043,6 @@ a:active {
 
   .studio-brand {
     gap: 9px;
-  }
-
-  .studio-brand-mark {
-    width: 44px;
-    height: 44px;
-    font-size: 0.77rem;
   }
 
   .studio-brand-copy strong {

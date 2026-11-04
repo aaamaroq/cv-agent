@@ -7,29 +7,40 @@
 
 ## Summary
 
-[Two or three sentences: your focus, years of experience, and what kind of role you are looking for.]
+[Two or three sentences positioning you for your target role: your focus, years of experience, and your strongest evidence — concrete work, not aspirations.]
 
 ## Technical Skills
 
-- **Languages:** [e.g. Python, Java, TypeScript]
+- **AI/LLM Engineering:** [e.g. LangGraph, LangChain, MCP, Hugging Face, OpenAI APIs, guardrails, RAG]
+- **Languages:** [e.g. Python, TypeScript, Java]
+- **Data Engineering:** [e.g. Spark, SQL, Airflow, ETL]
 - **Backend Engineering:** [e.g. frameworks, data access, auth, testing tools]
-- **Data Engineering:** [e.g. Spark, SQL, Airflow, LLM tooling]
 - **Cloud & DevOps:** [e.g. AWS, Docker, Terraform]
-- **System Design & Performance:** [e.g. Microservices, REST, ETL]
+- **System Design & Performance:** [e.g. Microservices, REST, Event-Driven Architecture]
 - **Methodology:** [e.g. Scrum, Jira]
 
 ## Professional Experience
 
-### [Company — Role, Location | Dates]
+### [Role] — [Employer], [Location] | [Dates]
 
+- [Strongest, most target-role-relevant bullet first — e.g. built X for LLM agents]
 - [e.g. Built X, reduced Y by Z%]
 - [e.g. Owned a service handling N requests/min]
 - [e.g. Automated repetitive tasks, saving H hours/week]
 
-### [Company — Role, Location | Dates]
+### [Role] — [Employer], [Location] | [Dates]
 
 - [e.g. Migrated a legacy system to a new stack]
 - [e.g. Introduced caching, cut p95 latency by Z%]
+
+## AI Projects
+
+### [Project name] ([personal project, repository or link]) | [Dates]
+
+- [What the system does and the problem it solves]
+- [The hardest engineering piece — e.g. guardrails, evaluation, retrieval]
+- [Stack and how it is served — e.g. FastAPI, streaming, observability]
+- [Quality evidence — e.g. tests, evaluation ladder, metrics]
 
 ## Education
 

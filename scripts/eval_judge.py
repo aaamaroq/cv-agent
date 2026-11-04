@@ -176,10 +176,9 @@ Case-specific success criteria (mandatory):
    are not documented directly answers the question. Do not mark it incomplete
    for failing to describe a deployment that the sources say is undocumented.
    If it mentions Adrián's professional MCP experience, support that CV fact
-   with the exact source quote: "Built MCP (Model Context Protocol) servers in
-   TypeScript exposing internal databases to LLM agents, enabling
-   natural-language access to enterprise data." The missing-production claim
-   itself is an evidence boundary and needs no positive quote.
+   with the exact source quote: "Built MCP (Model Context Protocol) servers to
+   support enterprise LLM workflows." The missing-production claim itself is
+   an evidence boundary and needs no positive quote.
 
 Score each axis from 1 to 3:
 - factuality: 3 all claims are supported; 2 minor ambiguity; 1 material unsupported or false claim.

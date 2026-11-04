@@ -124,8 +124,7 @@ CASES = [
     dict(name="prepared q06 career aspiration", expect="documented_aspiration",
          prompt="Where do you see yourself in three to five years?"),
     dict(name="prepared q11 MCP Spanish", expect="mcp_factual_es",
-         prompt="¿Qué experiencia tiene Adrián con MCP y qué permitían hacer "
-                "esos servidores?"),
+         prompt="¿Qué experiencia profesional tiene Adrián con MCP?"),
 ]
 
 OVERCLAIM_MARKERS = ("phd", "ph.d", "doctorate", "eight years", "8 years")
@@ -144,6 +143,9 @@ AI_RELEVANCE_RE = re.compile(
 )
 
 MCP_CAPABILITY_MARKERS = (
+    "named client", "specific client", "client sector", "private data source",
+    "proprietary access pattern", "sistemas del cliente", "cliente específico",
+    "sector del cliente", "fuente de datos privada", "patrón de acceso propietario",
     "security protocol", "security protocols", "secure access", "access control",
     "controles de seguridad", "protocolos de seguridad", "acceso seguro",
     "controles de acceso", "authorized agents", "agentes autorizados",
@@ -312,15 +314,13 @@ def evaluate(expect, verdict, neutral, prompt, answer):
         if asserts_undocumented_mcp_capability(ans):
             return "FAIL", "claimed MCP capabilities not documented in the sources"
         required = (
-            re.search(r"\bMCP\b", ans, re.IGNORECASE)
-            and re.search(r"TypeScript", ans, re.IGNORECASE)
-            and re.search(r"bases de datos internas", ans, re.IGNORECASE)
-            and re.search(r"agentes LLM", ans, re.IGNORECASE)
-            and re.search(r"lenguaje natural", ans, re.IGNORECASE)
+            re.search(r"servidores? MCP", ans, re.IGNORECASE)
+            and re.search(r"LLM|modelos? de lenguaje", ans, re.IGNORECASE)
+            and re.search(r"empresariales|enterprise", ans, re.IGNORECASE)
         )
         if required:
-            return "PASS", "answers in Spanish with the documented MCP work and capability"
-        return "FAIL", "omits a required fact about the professional MCP work"
+            return "PASS", "answers in Spanish with the documented high-level MCP work"
+        return "FAIL", "omits the documented high-level professional MCP work"
     if expect == "concise_profile":
         if deflected or fallbacked:
             return "REVIEW", "blocked instead of answering the profile question"

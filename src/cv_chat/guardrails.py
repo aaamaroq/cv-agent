@@ -38,10 +38,10 @@ _SPANISH_MARKER = re.compile(
     r"menciona|mencionan|su|sus|mi|mis)\b",
     re.IGNORECASE,
 )
-_KAFKA_PIPELINE_QUESTION = re.compile(
-    r"\bkafka\b[^.!?\n]{0,120}\b(?:pipeline|order[- ]processing|"
-    r"pedidos?|procesamiento)\b|"
-    r"\b(?:pipeline|order[- ]processing|pedidos?|procesamiento)\b"
+_KAFKA_SPARK_QUESTION = re.compile(
+    r"\bkafka\b[^.!?\n]{0,120}\b(?:spark|pipeline|data[- ]processing|"
+    r"procesamiento de datos)\b|"
+    r"\b(?:spark|pipeline|data[- ]processing|procesamiento de datos)\b"
     r"[^.!?\n]{0,120}\bkafka\b",
     re.IGNORECASE,
 )
@@ -125,9 +125,9 @@ def language_mismatch(question: str, answer: str) -> str | None:
     return f"Answer must be in {expected}, matching the user's language."
 
 
-def _asserts_undocumented_kafka_pipeline_use(question: str, answer: str) -> bool:
-    """Catch the known unsupported link between listed Kafka and the Spark pipeline."""
-    if not _KAFKA_PIPELINE_QUESTION.search(question):
+def _asserts_undocumented_kafka_spark_link(question: str, answer: str) -> bool:
+    """Catch unsupported claims linking listed Kafka to the documented Spark pipeline."""
+    if not _KAFKA_SPARK_QUESTION.search(question):
         return False
     for assertion in _KAFKA_PIPELINE_ASSERTION.finditer(answer):
         clause_start = max(
@@ -148,17 +148,15 @@ def _asserts_undocumented_kafka_pipeline_use(question: str, answer: str) -> bool
 def fallback_message(question: str) -> str:
     """Return the safe fallback in the language used by the recruiter."""
     is_spanish = is_spanish_text(question)
-    if _KAFKA_PIPELINE_QUESTION.search(question):
+    if _KAFKA_SPARK_QUESTION.search(question):
         if is_spanish:
             return (
                 "El CV incluye Apache Kafka en la lista de habilidades, pero no "
-                "documenta que se usara en el pipeline de pedidos; describe ese "
-                "pipeline como basado en Spark."
+                "documenta su uso en el pipeline de datos descrito con Spark."
             )
         return (
             "The CV lists Apache Kafka as a skill, but does not document its use "
-            "in the order-processing pipeline; it describes that pipeline as "
-            "Spark-based."
+            "in the data pipeline documented with Spark."
         )
     if _DEADLINE_STRESS_QUESTION.search(question):
         if is_spanish:
@@ -177,56 +175,52 @@ def fallback_message(question: str) -> str:
             if is_spanish:
                 return (
                     "Las fuentes no documentan despliegues de IA en producción ni "
-                    "métricas atribuibles a IA. Documentan servidores MCP para un "
-                    "cliente bancario y un chatbot de portfolio con LangGraph y "
-                    "OpenRouter, pero ninguno afirma un despliegue en producción."
+                    "métricas atribuibles a IA. Sí documentan servidores MCP para "
+                    "flujos de trabajo empresariales con LLMs y un chatbot de "
+                    "portfolio con LangGraph y OpenRouter, sin afirmar que estén "
+                    "desplegados en producción."
                 )
             return (
                 "The sources do not document AI deployments in production or "
-                "AI-specific impact metrics. They document MCP servers for a "
-                "banking client and a portfolio chatbot built with LangGraph "
-                "and OpenRouter, but claim no production deployment."
+                "AI-specific impact metrics. They document MCP servers for "
+                "enterprise LLM workflows and a portfolio chatbot built with "
+                "LangGraph and OpenRouter, but no production deployment."
             )
         if _LLM_QUESTION.search(question):
             if is_spanish:
                 return (
-                    "El trabajo profesional de Adrián con LLMs son los "
-                    "servidores MCP que construyó en TypeScript para un cliente "
-                    "bancario; el chatbot de portfolio con LangGraph y OpenRouter "
-                    "añade evidencia adicional como proyecto personal."
+                    "Adrián desarrolló servidores MCP para flujos de trabajo "
+                    "empresariales con LLMs. El chatbot de portfolio con LangGraph "
+                    "y OpenRouter es otro proyecto personal."
                 )
             return (
-                "Adrián's professional LLM work is the MCP servers he built in "
-                "TypeScript for a banking client; his portfolio chatbot built "
-                "with LangGraph and OpenRouter adds further evidence as a "
-                "personal project."
+                "Adrián built MCP servers to support enterprise LLM workflows. "
+                "His portfolio chatbot built with LangGraph and OpenRouter is "
+                "another personal project."
             )
         if _DATA_BUSINESS_QUESTION.search(question):
             if is_spanish:
                 return (
-                    "En 41OPS, Adrián desarrolló con Spark un pipeline de "
-                    "procesamiento de pedidos y colaboró con los equipos de "
-                    "negocio para recoger requisitos. El CV describe ese trabajo "
-                    "como procesamiento de datos, no como una aplicación de IA."
+                    "Adrián desarrolló un pipeline de procesamiento de datos con "
+                    "Spark y colaboró con equipos para aclarar requisitos. Las "
+                    "fuentes no indican que fueran parte del mismo proyecto ni "
+                    "que el pipeline utilizara IA."
                 )
             return (
-                "At 41OPS, Adrián built a Spark order-processing pipeline and "
-                "worked with business teams to gather requirements. His CV "
-                "describes this as data processing, not an AI application."
+                "Adrián built a data-processing pipeline with Spark and worked "
+                "with teams to clarify requirements. The sources do not say "
+                "these were part of the same project or that the pipeline used AI."
             )
         if is_spanish:
             return (
-                "La evidencia de Adrián en IA/LLM son los servidores MCP que "
-                "construyó en TypeScript para un cliente bancario y el chatbot "
-                "de portfolio con LangGraph y OpenRouter; su experiencia "
-                "profesional aporta además procesamiento de datos con Spark y "
-                "colaboración con negocio."
+                "La experiencia profesional de Adrián incluye servidores MCP "
+                "para flujos empresariales con LLMs y procesamiento de datos con "
+                "Spark; el chatbot con LangGraph y OpenRouter es un proyecto personal."
             )
         return (
-            "Adrián's AI/LLM evidence is the MCP servers he built in "
-            "TypeScript for a banking client and the portfolio chatbot built "
-            "with LangGraph and OpenRouter; his professional experience adds "
-            "Spark data processing and collaboration with business teams."
+            "Adrián's professional experience includes MCP servers for "
+            "enterprise LLM workflows and data processing with Spark; his "
+            "LangGraph and OpenRouter chatbot is a personal project."
         )
     if is_spanish:
         return FALLBACK_MESSAGE_ES
@@ -245,11 +239,10 @@ RETRY_NOTE = (
     "documented LLM work (the professional MCP servers and the portfolio "
     "chatbot) and relevant data experience; mention backend only when "
     "directly relevant. "
-    "Do not infer project-specific features from what a technology can "
-    "generally do. The MCP sources document only internal database exposure "
-    "to LLM agents and natural-language access; do not claim security or "
-    "access controls, reporting, decision support, automation, customer "
-    "impact or performance improvements unless explicitly documented. "
+    "Do not infer project-specific MCP features from what the protocol can "
+    "generally do. The CV documents enterprise LLM workflows only; do not add "
+    "a client, sector, data source, access pattern, deployment detail, or "
+    "business outcome. "
     "Speak about Adrián in the third person; never impersonate him. Never "
     "volunteer a hiring recommendation or call him ideal/unsuitable unless "
     "the user explicitly asks for an assessment. Never confirm negative framing "
@@ -351,27 +344,25 @@ it is shown to the user.
 You are given the source of truth (Adrián's CV and project notes). A claim in \
 the reply is supported only if it appears in or is directly implied by that \
 source. Content copied from the source of truth is always allowed and expected.
-The source explicitly supports MCP servers built for a banking client that \
-exposed internal databases to LLM agents and enabled natural-language access to \
-enterprise data. Do not reject that supported agent capability as "customer \
-access" or "customer impact": the client is project context, not a claim that \
-the bank's customers used the servers.
+The source documents MCP servers supporting enterprise LLM workflows. It does \
+not publish a client, sector, data source, access pattern, deployment detail, \
+or specific business outcome. Do not infer or disclose those details from the \
+MCP protocol or from general knowledge about LLM systems.
 
 Set ok=false ONLY if the reply clearly:
 - asserts about Adrián a fact, skill, metric, employer, project or technology \
   that is NOT supported by the source of truth (an overclaim or invention);
 - infers project-specific capabilities from a technology's general abilities. \
-  For MCP, the sources document internal database exposure to LLM agents and \
-  natural-language access only; reject claims of security/access controls, \
-  report generation, decision support, automation, customer impact or \
-  performance improvements unless the source explicitly supports them;
+  For MCP, state only that Adrián built servers supporting enterprise LLM \
+  workflows; reject claims about clients, sectors, data sources, access \
+  patterns, deployment, security, reporting, decision support, automation, \
+  customer impact, or performance unless the source explicitly supports them;
 - presents a skill that appears only in the CV's skills list as demonstrated \
   hands-on job or project experience;
-- claims that Apache Kafka was used in Adrián's order-processing pipeline. The \
-  CV lists Kafka as a skill and separately documents a Spark pipeline, but does \
-  not link Kafka to that pipeline. Accept a concise statement that this use is \
-  not documented; reject a claim that Kafka processed, enabled, improved or \
-  contributed to that pipeline;
+- claims that Apache Kafka was used in Adrián's Spark data-processing pipeline. \
+  The CV lists Kafka as a skill and separately documents a Spark pipeline, but \
+  does not link Kafka to it. Accept a concise statement that the connection is \
+  not documented; reject claims that Kafka was used in that pipeline;
 - conflates the portfolio chatbot in the repository with professional work or \
   claims it is deployed in production without evidence;
 - infers that a data-processing project uses AI, or presents non-AI metrics as \
@@ -461,13 +452,13 @@ User question: "Which technologies are on Adrián's CV, and does it mention Go?"
 Reply: "The CV lists Spring Boot, Redis and Kafka, but it does not mention Go."
 {"ok": true, "reason": ""}
 
-User question: "¿Usó Kafka profesionalmente en el pipeline de procesamiento de pedidos?"
-Reply: "Sí, Adrián utilizó Apache Kafka en el pipeline de procesamiento de pedidos."
+User question: "¿Qué papel tuvo Kafka en el pipeline de datos de Adrián?"
+Reply: "Kafka se utilizó en el pipeline de datos desarrollado con Spark."
 {"ok": false, "reason": "the CV lists Kafka as a skill but does not document its use in the Spark pipeline"}
 
-User question: "¿Usó Kafka profesionalmente en el pipeline de procesamiento de pedidos?"
-Reply: "El CV incluye Kafka en la lista de habilidades, pero no documenta su uso en el pipeline de pedidos, que describe como basado en Spark."
-{"ok": true, "reason": "distinguishes the listed skill from the documented Spark pipeline"}
+User question: "¿Qué papel tuvo Kafka en el pipeline de datos de Adrián?"
+Reply: "El CV incluye Kafka en la lista de habilidades, pero no documenta su relación con el pipeline de datos basado en Spark."
+{"ok": true, "reason": "distinguishes the listed skill from the separately documented Spark pipeline"}
 
 User question: "Why did he leave SiCongresos after about a year?"
 Reply: "The CV says he spent about a year at SiCongresos; it does not state why he left."
@@ -490,7 +481,7 @@ Reply: "Adrián has hands-on professional experience with Hugging Face and has d
 {"ok": false, "reason": "wrong language and unsupported claims: Hugging Face is only listed as a skill, and the sources document no AI production deployments"}
 
 User question: "¿El CV acredita que Adrián haya desplegado IA en producción? ¿Qué métricas de impacto en IA aparecen?"
-Reply: "Las fuentes no documentan despliegues de IA en producción ni métricas atribuibles a IA. Documentan servidores MCP para un cliente bancario y un chatbot de portfolio con LangGraph y OpenRouter, pero ninguno afirma un despliegue en producción."
+Reply: "Las fuentes no documentan despliegues de IA en producción ni métricas atribuibles a IA. Documentan servidores MCP para flujos empresariales con LLMs y un chatbot de portfolio con LangGraph y OpenRouter, sin afirmar que estén desplegados en producción."
 {"ok": true, "reason": ""}
 
 User question: "¿El CV acredita que Adrián haya desplegado sistemas de IA en producción? ¿Qué métricas de impacto en IA aparecen?"
@@ -506,32 +497,32 @@ Reply: "El perfil de Adrián destaca por su experiencia profesional con Hugging 
 {"ok": false, "reason": "overlong, presents skills only listed on the CV as professional AI experience, and adds unrequested programming and backend skills"}
 
 User question: "¿Qué aspectos concretos del perfil de Adrián podrían interesar a un equipo de AI Engineering?"
-Reply: "Su experiencia más relevante son los servidores MCP que construyó en TypeScript para un cliente bancario, exponiendo bases de datos internas a agentes LLM, junto con el chatbot de portfolio con LangGraph y OpenRouter."
+Reply: "Su experiencia más relevante incluye servidores MCP para flujos de trabajo empresariales con LLMs y el chatbot de portfolio con LangGraph y OpenRouter."
 {"ok": true, "reason": ""}
 
-User question: "Para una entrevista de AI Engineer, ¿qué experiencia aporta evidencia de trabajo con datos y colaboración con negocio?"
-Reply: "En 41OPS, Adrián desarrolló con Spark un pipeline de procesamiento de pedidos basado en eventos y mantuvo feedback continuo con los equipos de negocio para recoger requisitos. El CV no describe ese pipeline como un sistema de IA."
+User question: "Para una entrevista de AI Engineer, ¿qué experiencia aporta evidencia de trabajo con datos y colaboración con equipos?"
+Reply: "Adrián desarrolló un pipeline de procesamiento de datos con Spark y colaboró con equipos para aclarar requisitos. Las fuentes no indican que fueran parte del mismo proyecto ni que el pipeline utilizara IA."
 {"ok": true, "reason": ""}
 
-User question: "Para una entrevista de AI Engineer, ¿qué ejemplo profesional combina trabajo con datos y colaboración con negocio?"
-Reply: "En su trabajo en 41OPS, Adrián desarrolló un pipeline de procesamiento de pedidos con Spark. En ese proyecto, colaboró con los equipos de negocio para garantizar que se cumplieran las necesidades de los clientes."
+User question: "Para una entrevista de AI Engineer, ¿qué ejemplo profesional combina trabajo con datos y colaboración con equipos?"
+Reply: "Adrián desarrolló un pipeline con Spark y colaboró con equipos en el mismo proyecto para definir requisitos."
 {"ok": false, "reason": "the source does not establish that business collaboration was part of the Spark project"}
 
-User question: "Para una entrevista de AI Engineer, ¿qué ejemplo profesional combina trabajo con datos y colaboración con negocio?"
-Reply: "En 41OPS, Adrián desarrolló con Spark un pipeline de procesamiento de pedidos y mantuvo feedback continuo con los equipos de negocio para recoger requisitos. El CV no indica que esas actividades formaran parte del mismo proyecto."
+User question: "Para una entrevista de AI Engineer, ¿qué ejemplo profesional combina trabajo con datos y colaboración con equipos?"
+Reply: "Adrián desarrolló un pipeline de datos con Spark y colaboró con equipos para definir requisitos. El CV no indica que esas actividades formaran parte del mismo proyecto."
 {"ok": true, "reason": "reports both relevant facts without claiming an unsupported link"}
 
 User question: "Para una entrevista de AI Engineer, ¿qué ejemplo concreto combina trabajo con datos y colaboración con negocio?"
 Reply: "En su experiencia profesional, Adrián ha trabajado en el desarrollo de un pipeline de procesamiento de eventos utilizando Spark, lo que demuestra su capacidad para trabajar con datos y colaborar con equipos empresariales para gather requirements. Además, en su proyecto de portfolio, ha construido un chatbot de LangGraph que utiliza LLMs a través de OpenRouter, lo que muestra su experiencia en la ingeniería de AI."
 {"ok": false, "reason": "mixes Spanish with English prose and adds an unrelated portfolio example to a question about professional data/business experience"}
 
-User question: "What security, reporting and decision-support capabilities did Adrián build into the MCP servers?"
-Reply: "The MCP servers exposed internal databases to LLM agents with secure access controls, report generation and decision support."
-{"ok": false, "reason": "the source documents natural-language database access, not security controls, reporting or decision-support capabilities"}
+User question: "What specific client and implementation details are available about Adrián's MCP work?"
+Reply: "The servers were built for a named client, using a private data source and a proprietary access pattern."
+{"ok": false, "reason": "the CV does not disclose client or implementation details"}
 
-User question: "What did Adrián's MCP servers enable?"
-Reply: "The sources document MCP servers exposing internal databases to LLM agents and enabling natural-language access; they do not specify security controls or other capabilities."
-{"ok": true, "reason": "states only the documented MCP capabilities and explicitly marks the evidence boundary"}
+User question: "What did Adrián's MCP servers support?"
+Reply: "The CV documents MCP servers supporting enterprise LLM workflows; it does not publish their client, data sources or specific capabilities."
+{"ok": true, "reason": "states the documented high-level work and marks the evidence boundary"}
 
 User question: "Para seleccionar un AI Engineer, ¿qué evidencia hay de despliegues de IA en producción y de métricas de impacto atribuibles a IA?"
 Reply: "No se menciona en los documentos proporcionados si Adrián ha realizado despliegues de IA en producción o ha obtenido métricas de impacto atribuibles a IA en sus empleos anteriores. Sin embargo, su experiencia en el desarrollo de microservicios, procesamiento de datos y colaboración con equipos empresariales podría ser relevante para un papel de AI Engineer."
@@ -561,13 +552,13 @@ User question: "Where do you see yourself in three to five years?"
 Reply: "I see myself as a senior AI engineer leading large-scale AI systems, conducting research, and becoming a thought leader."
 {"ok": false, "reason": "impersonates Adrián and invents a title, research goals, and achievements not in the sources"}
 
-User question: "¿Qué experiencia tiene Adrián con MCP y qué permitían hacer esos servidores?"
-Reply: "Adrián construyó servidores MCP en TypeScript para un cliente bancario. Exponían bases de datos internas a agentes LLM y permitían a esos agentes acceder a datos empresariales en lenguaje natural."
-{"ok": true, "reason": "states only the documented MCP work and natural-language data access"}
+User question: "¿Qué experiencia tiene Adrián con MCP?"
+Reply: "Adrián desarrolló servidores MCP para flujos de trabajo empresariales con LLMs."
+{"ok": true, "reason": "states only the documented high-level MCP work"}
 
-User question: "¿Qué experiencia tiene Adrián con MCP y qué permitían hacer esos servidores?"
-Reply: "Los servidores permitían a los clientes acceder a sus cuentas con controles de seguridad, generar informes y tomar decisiones."
-{"ok": false, "reason": "invents customer access, security controls, reporting, and decision-support capabilities"}
+User question: "¿Qué experiencia tiene Adrián con MCP?"
+Reply: "Los servidores se construyeron para un cliente concreto con una fuente de datos privada y un patrón de acceso propietario."
+{"ok": false, "reason": "the CV does not disclose data sources or project-specific capabilities"}
 
 Reply with JSON only: {"ok": ..., "reason": "..."}"""
 
@@ -656,11 +647,11 @@ def check_output(
     mismatch = language_mismatch(question, answer)
     if mismatch:
         return False, mismatch
-    if _asserts_undocumented_kafka_pipeline_use(question, answer):
+    if _asserts_undocumented_kafka_spark_link(question, answer):
         return (
             False,
             "The sources list Kafka as a skill but do not document its use in "
-            "the order-processing pipeline; that pipeline is documented with Spark.",
+            "the Spark data pipeline.",
         )
 
     if (

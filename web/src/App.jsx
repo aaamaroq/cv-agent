@@ -6,14 +6,17 @@ const COPY = {
     languageLabel: 'Idioma',
     focus: 'AI Engineer',
     location: 'Madrid',
+    profileAlt: 'Retrato de Adrián Amaro',
+    bannerAlt: 'Paisaje panorámico pintado de un camino entre campos y árboles.',
+    linkedIn: 'LinkedIn',
     introduction: 'Ingeniero de software con más de tres años de experiencia en integración de LLM, pipelines de datos y sistemas backend distribuidos.',
     experience: 'Experiencia',
     trcRole:
-      'Servicios backend con Spring Boot, flujos asíncronos con colas de mensajes y análisis de requisitos con el cliente.',
+      'Servicios backend con Spring Boot y flujos asíncronos en sistemas distribuidos.',
     role41ops:
-      'Servidores MCP en TypeScript para agentes LLM, microservicios con Java y Spring Boot, y un pipeline de pedidos con Spark.',
+      'Servidores MCP para flujos de trabajo empresariales con LLMs, microservicios con Java y Spring Boot, y procesamiento de datos con Spark.',
     siCongresosRole:
-      'Microservicio con Spring Boot, plataforma de preguntas con React y Tailwind, y mantenimiento y migración de sistemas.',
+      'Servicios backend con Spring Boot, aplicaciones web y mantenimiento y migración de sistemas.',
     skills: 'Áreas de trabajo',
     backend: 'Backend',
     dataEngineering: 'Datos',
@@ -57,14 +60,17 @@ const COPY = {
     languageLabel: 'Language',
     focus: 'AI Engineer',
     location: 'Madrid',
+    profileAlt: 'Portrait of Adrián Amaro',
+    bannerAlt: 'Panoramic painted landscape of a path between fields and trees.',
+    linkedIn: 'LinkedIn',
     introduction: 'Software engineer with 3+ years of experience across LLM integration, data pipelines, and distributed backend systems.',
     experience: 'Experience',
     trcRole:
-      'Spring Boot backend services, asynchronous message-queue flows, and client requirements analysis.',
+      'Spring Boot backend services and asynchronous workflows in distributed systems.',
     role41ops:
-      'TypeScript MCP servers for LLM agents, Java and Spring Boot microservices, and an order-processing pipeline with Spark.',
+      'MCP servers for enterprise LLM workflows, Java and Spring Boot microservices, and data processing with Spark.',
     siCongresosRole:
-      'A Spring Boot microservice, a questions platform with React and Tailwind, and system maintenance and migration.',
+      'Spring Boot backend services, web applications, and system maintenance and migration.',
     skills: 'Areas of work',
     backend: 'Backend',
     dataEngineering: 'Data',
@@ -110,7 +116,6 @@ const EXPERIENCE = {
   es: [
     {
       company: 'TRC',
-      client: 'Cliente: administración pública',
       title: 'Ingeniero de software',
       place: 'España',
       dates: 'Mayo 2026 — Actualidad',
@@ -118,7 +123,6 @@ const EXPERIENCE = {
     },
     {
       company: '41OPS',
-      client: 'Cliente: grupo bancario internacional',
       title: 'Ingeniero de software',
       place: 'Madrid',
       dates: 'Septiembre 2024 — Mayo 2026',
@@ -126,18 +130,15 @@ const EXPERIENCE = {
     },
     {
       company: 'SiCongresos',
-      client: 'Cliente: sector sanitario',
       title: 'Ingeniero de software',
       place: 'Granada',
       dates: 'Mayo 2023 — Mayo 2024',
       descriptionKey: 'siCongresosRole',
-      detail: '50K solicitudes/min en pruebas sostenidas con JMeter.',
     },
   ],
   en: [
     {
       company: 'TRC',
-      client: 'Client: public administration',
       title: 'Software engineer',
       place: 'Spain',
       dates: 'May 2026 — Present',
@@ -145,7 +146,6 @@ const EXPERIENCE = {
     },
     {
       company: '41OPS',
-      client: 'Client: international banking group',
       title: 'Software engineer',
       place: 'Madrid',
       dates: 'September 2024 — May 2026',
@@ -153,12 +153,10 @@ const EXPERIENCE = {
     },
     {
       company: 'SiCongresos',
-      client: 'Client: healthcare sector',
       title: 'Software engineer',
       place: 'Granada',
       dates: 'May 2023 — May 2024',
       descriptionKey: 'siCongresosRole',
-      detail: '50K requests/min in sustained JMeter load tests.',
     },
   ],
 }
@@ -184,7 +182,13 @@ export default function App() {
     <div className="studio-app">
       <header className="studio-header">
         <a className="studio-brand" href="#inicio" aria-label="Adrián Amaro">
-          <span className="studio-brand-mark" aria-hidden="true">AA</span>
+          <img
+            className="studio-brand-avatar"
+            src="/images/adrian-amaro-profile.webp"
+            alt={copy.profileAlt}
+            fetchPriority="high"
+            decoding="async"
+          />
           <span className="studio-brand-copy">
             <strong>Adrián Amaro</strong>
             <span>{copy.focus} <i aria-hidden="true">·</i> {copy.location}</span>
@@ -223,6 +227,14 @@ export default function App() {
               </svg>
             </summary>
             <div className="studio-profile-content">
+              <figure className="studio-profile-cover">
+                <img
+                  src="/images/adrian-amaro-banner.webp"
+                  alt={copy.bannerAlt}
+                  loading="lazy"
+                  decoding="async"
+                />
+              </figure>
               <p className="studio-profile-intro">{copy.introduction}</p>
               <div className="studio-experience-list">
                 {EXPERIENCE[language].map((entry) => (
@@ -233,7 +245,6 @@ export default function App() {
                       <p className="studio-experience-meta">
                         {entry.title} <span aria-hidden="true">·</span> {entry.place}
                       </p>
-                      <p className="studio-experience-client">{entry.client}</p>
                       <p className="studio-experience-description">{copy[entry.descriptionKey]}</p>
                       {entry.detail && <p className="studio-experience-detail">{entry.detail}</p>}
                     </div>
@@ -311,6 +322,9 @@ export default function App() {
         <span>{copy.footerNote}</span>
         <nav aria-label={copy.contact}>
           <a href="mailto:adrianamaroquero@gmail.com">{copy.contact}</a>
+          <a href="https://www.linkedin.com/in/adrian-amaro/" target="_blank" rel="noreferrer">
+            {copy.linkedIn}
+          </a>
           <a href="https://github.com/aaamaroq/ecommerce" target="_blank" rel="noreferrer">
             {copy.projectLink}
           </a>

@@ -75,13 +75,12 @@ class ExtractJsonTests(unittest.TestCase):
 
 
 class CheckOutputTests(unittest.TestCase):
-    def test_deterministically_rejects_unsupported_kafka_pipeline_claim(self):
+    def test_deterministically_rejects_unsupported_kafka_spark_claim(self):
         llm = FakeLLM('{"ok": true, "reason": ""}')
         result = guardrails.check_output(
             llm,
-            "¿Usó Kafka profesionalmente en el pipeline de procesamiento de pedidos?",
-            "Sí, Adrián utilizó Apache Kafka en el pipeline de procesamiento de pedidos. "
-            "Kafka ayudó a procesar eventos en tiempo real.",
+            "¿Qué papel tuvo Kafka en el pipeline de datos de Adrián?",
+            "Kafka se utilizó en el pipeline de datos desarrollado con Spark.",
             "src",
         )
         self.assertEqual(
@@ -89,7 +88,7 @@ class CheckOutputTests(unittest.TestCase):
             (
                 False,
                 "The sources list Kafka as a skill but do not document its use in "
-                "the order-processing pipeline; that pipeline is documented with Spark.",
+                "the Spark data pipeline.",
             ),
         )
         self.assertFalse(llm.structured_called)
@@ -100,9 +99,9 @@ class CheckOutputTests(unittest.TestCase):
         self.assertEqual(
             guardrails.check_output(
                 llm,
-                "¿Usó Kafka profesionalmente en el pipeline de procesamiento de pedidos?",
+                "¿Qué papel tuvo Kafka en el pipeline de datos de Adrián?",
                 "El CV incluye Apache Kafka en la lista de habilidades, pero no "
-                "documenta su uso en el pipeline de pedidos, que describe como basado en Spark.",
+                "documenta su relación con el pipeline de datos basado en Spark.",
                 "src",
             ),
             (True, ""),
@@ -112,8 +111,8 @@ class CheckOutputTests(unittest.TestCase):
         llm = FakeLLM('{"ok": true, "reason": ""}')
         result = guardrails.check_output(
             llm,
-            "¿Usó Kafka profesionalmente en el pipeline de procesamiento de pedidos?",
-            "No hay métricas documentadas; Kafka se utilizó en el pipeline de pedidos.",
+            "¿Qué papel tuvo Kafka en el pipeline de datos de Adrián?",
+            "No hay métricas documentadas; Kafka se utilizó en el pipeline de Spark.",
             "src",
         )
         self.assertFalse(result[0])
@@ -123,7 +122,7 @@ class CheckOutputTests(unittest.TestCase):
         result = guardrails.check_output(
             llm,
             "¿Qué experiencia tiene Adrián con MCP?",
-            "Adrián built MCP servers for a banking client.",
+            "Adrián built MCP servers for enterprise LLM workflows.",
             "src",
         )
         self.assertEqual(
@@ -138,7 +137,7 @@ class CheckOutputTests(unittest.TestCase):
         result = guardrails.check_output(
             llm,
             "What experience does Adrián have with MCP?",
-            "Adrián construyó servidores MCP para un cliente bancario.",
+            "Adrián desarrolló servidores MCP para flujos empresariales con LLMs.",
             "src",
         )
         self.assertEqual(
@@ -273,9 +272,9 @@ class LanguageDetectionTests(unittest.TestCase):
 
     def test_fallback_distinguishes_kafka_skill_from_spark_pipeline(self):
         self.assertIn(
-            "no documenta que se usara",
+            "no documenta su uso",
             guardrails.fallback_message(
-                "¿Usó Kafka profesionalmente en el pipeline de procesamiento de pedidos?"
+                "¿Qué papel tuvo Kafka en el pipeline de datos de Adrián?"
             ),
         )
 
