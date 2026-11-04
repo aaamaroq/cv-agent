@@ -45,6 +45,7 @@ def build_graph(settings: Settings) -> CompiledStateGraph:
         model=settings.model,
         api_key=settings.api_key or "offline-placeholder",
         temperature=settings.temperature,
+        max_tokens=2048,
         timeout=timeout_ms,
     )
     guardrail_llm = ChatOpenRouter(

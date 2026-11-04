@@ -8,3 +8,8 @@ node_modules/
 web/dist/
 # private — copy from cv.md.sample and fill in
 cv.md
+# local evaluation traces and ratings contain CV-grounded conversation data
+evals/runs/
+evals/labels/
+evals/judgements/
+evals/reports/
