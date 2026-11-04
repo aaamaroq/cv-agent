@@ -55,6 +55,10 @@ const COPY = {
     contact: 'Contacto',
     projectLink: 'GitHub',
     footerNote: 'Perfil profesional basado en el CV de Adrián.',
+    profileLoading: 'Preparando esta versión del portfolio…',
+    profileNotFound: 'No encontramos este perfil personalizado.',
+    profileLoadError: 'No se pudo cargar este perfil. Comprueba tu conexión e inténtalo de nuevo.',
+    backToPortfolio: 'Ir al portfolio general',
   },
   en: {
     languageLabel: 'Language',
@@ -109,6 +113,10 @@ const COPY = {
     contact: 'Contact',
     projectLink: 'GitHub',
     footerNote: "Professional profile based on Adrián's CV.",
+    profileLoading: 'Preparing this portfolio…',
+    profileNotFound: 'This personalized profile could not be found.',
+    profileLoadError: 'This profile could not be loaded. Check your connection and try again.',
+    backToPortfolio: 'Go to the main portfolio',
   },
 }
 
@@ -166,9 +174,48 @@ function getInitialLanguage() {
   return navigator.language.toLowerCase().startsWith('es') ? 'es' : 'en'
 }
 
+function getProfileIdFromPath() {
+  const path = window.location.pathname.replace(/\/$/, '') || '/'
+  if (path === '/' || path === '/index.html') return 'general'
+  return path.match(/^\/p\/([a-z0-9-]+)$/)?.[1] ?? null
+}
+
 export default function App() {
   const [language, setLanguage] = useState(getInitialLanguage)
   const copy = COPY[language]
+  const profileId = getProfileIdFromPath()
+  const [profileState, setProfileState] = useState(() =>
+    profileId === 'general'
+      ? { status: 'ready', profile: null }
+      : profileId
+        ? { status: 'loading', profile: null }
+        : { status: 'not-found', profile: null },
+  )
+
+  useEffect(() => {
+    if (!profileId || profileId === 'general') return undefined
+
+    const controller = new AbortController()
+    fetch(`/api/profiles/${encodeURIComponent(profileId)}`, { signal: controller.signal })
+      .then((response) => {
+        if (!response.ok) {
+          const error = new Error('Profile request failed')
+          error.status = response.status
+          throw error
+        }
+        return response.json()
+      })
+      .then((profile) => setProfileState({ status: 'ready', profile }))
+      .catch((error) => {
+        if (controller.signal.aborted) return
+        setProfileState({
+          status: error.status === 404 ? 'not-found' : 'error',
+          profile: null,
+        })
+      })
+
+    return () => controller.abort()
+  }, [profileId])
 
   useEffect(() => {
     document.documentElement.lang = language
@@ -177,6 +224,28 @@ export default function App() {
       ? 'Adrián Amaro — Portfolio AI Engineer'
         : 'Adrián Amaro — AI Engineer portfolio'
   }, [language])
+
+  if (profileState.status !== 'ready') {
+    const message =
+      profileState.status === 'loading'
+        ? copy.profileLoading
+        : profileState.status === 'not-found'
+          ? copy.profileNotFound
+          : copy.profileLoadError
+
+    return (
+      <div className="studio-app">
+        <main className="studio-main">
+          <section className="studio-profile-status" aria-live="polite">
+            <p>{message}</p>
+            {profileState.status !== 'loading' && (
+              <a href="/">{copy.backToPortfolio}</a>
+            )}
+          </section>
+        </main>
+      </div>
+    )
+  }
 
   return (
     <div className="studio-app">
@@ -215,7 +284,7 @@ export default function App() {
       </header>
 
       <main className="studio-main" id="inicio">
-        <Chat language={language} />
+        <Chat language={language} profile={profileState.profile} profileId={profileId} />
 
         <section className="studio-details" aria-label={copy.moreInfo}>
           <details className="studio-details-item">

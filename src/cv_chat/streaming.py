@@ -113,8 +113,8 @@ _runtime = ConversationRuntime(get_settings())
 # Public interface
 # ---------------------------------------------------------------------------
 
-def _input(message: str) -> dict:
-    return {"messages": [HumanMessage(message)]}
+def _input(message: str, profile_context: str = "") -> dict:
+    return {"messages": [HumanMessage(message)], "profile_context": profile_context}
 
 
 def _config(thread_id: str) -> dict:
@@ -135,13 +135,18 @@ def _config(thread_id: str) -> dict:
     return config
 
 
-def stream_turn(graph: Any, message: str, thread_id: str) -> Iterator[dict[str, Any]]:
+def stream_turn(
+    graph: Any,
+    message: str,
+    thread_id: str,
+    profile_context: str = "",
+) -> Iterator[dict[str, Any]]:
     """Translate LangGraph events into wire events (sync)."""
     with _runtime.turn(graph, thread_id):
         gate = _TokenGate()
         try:
             for event in graph.stream(
-                _input(message),
+                _input(message, profile_context),
                 _config(thread_id),
                 stream_mode=["messages", "updates"],
                 subgraphs=True,
@@ -152,12 +157,17 @@ def stream_turn(graph: Any, message: str, thread_id: str) -> Iterator[dict[str, 
             yield {"error": str(exc)}
 
 
-async def astream_turn(graph: Any, message: str, thread_id: str) -> AsyncIterator[dict[str, Any]]:
+async def astream_turn(
+    graph: Any,
+    message: str,
+    thread_id: str,
+    profile_context: str = "",
+) -> AsyncIterator[dict[str, Any]]:
     """Translate LangGraph events into wire events (async, supports cancellation)."""
     async with _runtime.aturn(graph, thread_id):
         gate = _TokenGate()
         stream = graph.astream(
-            _input(message),
+            _input(message, profile_context),
             _config(thread_id),
             stream_mode=["messages", "updates"],
             subgraphs=True,

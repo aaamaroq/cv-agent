@@ -245,6 +245,17 @@ class SourceOfTruthTests(unittest.TestCase):
         self.assertIn("## Project notes", sot)
 
 
+class RecruiterProfilePromptTests(unittest.TestCase):
+    def test_profile_focus_is_an_input_but_explicitly_not_evidence(self):
+        prompt = prompts.build_prompt().invoke(
+            {"messages": [], "profile_context": "Demo focus: MCP and data processing."}
+        )
+
+        system_prompt = prompt.messages[0].content
+        self.assertIn("Demo focus: MCP and data processing.", system_prompt)
+        self.assertIn("It is not evidence about Adrián or the company", system_prompt)
+
+
 class LanguageDetectionTests(unittest.TestCase):
     def test_detects_spanish_without_relying_on_accents(self):
         self.assertTrue(guardrails.is_spanish_text("Adrian tiene experiencia con MCP"))

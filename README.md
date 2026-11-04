@@ -34,6 +34,20 @@ cd web && npm install && npm run dev
 
 Open http://localhost:5173
 
+### Personalized recruiter link
+
+The root portfolio keeps the general recruiter greeting. The demo company
+profile is available at `http://localhost:8000/p/acme` when using the packaged
+app, or `http://localhost:5173/p/acme` in the Vite development stack. It changes
+the chat greeting, suggested questions, and the emphasis used when answering;
+all claims remain grounded in the CV and project notes. Profiles are curated in
+`src/cv_chat/profiles.py` and exposed as public presentation data through
+`GET /api/profiles/{profile_id}`.
+
+Each page load starts a fresh chat thread. The backend keeps its in-memory
+context only for turns in that open thread; reloading or returning to the link
+does not resume the previous conversation.
+
 ### Docker development mode (automatic updates)
 
 For code changes, use the development Compose overlay instead of the packaged

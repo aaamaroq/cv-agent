@@ -16,6 +16,7 @@ MAX_OUTPUT_RETRIES = 1
 
 class State(TypedDict):
     messages: Annotated[list[BaseMessage], add_messages]
+    profile_context: str
     input_verdict: Literal["ok", "loaded", "abuse", "injection"]
     neutral_question: str | None
     output_ok: bool
@@ -90,7 +91,12 @@ def build_graph(settings: Settings) -> CompiledStateGraph:
             human = messages.pop()
             messages.append(SystemMessage(content=note))
             messages.append(human)
-        reply = chain.invoke({"messages": messages})
+        reply = chain.invoke(
+            {
+                "messages": messages,
+                "profile_context": state.get("profile_context", ""),
+            }
+        )
         if rewrite is not None:
             return {"messages": [rewrite, reply]}
         return {"messages": [reply]}

@@ -2,9 +2,9 @@ import json
 from contextlib import asynccontextmanager
 from typing import AsyncIterator
 
-from fastapi import FastAPI, Request
+from fastapi import FastAPI, HTTPException, Request
 from fastapi.middleware.cors import CORSMiddleware
-from fastapi.responses import StreamingResponse
+from fastapi.responses import FileResponse, StreamingResponse
 from pydantic import BaseModel, Field
 
 from .config import CV_PATH, PROJECT_NOTES_PATH, REPO_ROOT, get_settings
@@ -14,6 +14,7 @@ from .observability import (
     configure_observability,
     shutdown_observability,
 )
+from .profiles import get_profile
 from .streaming import astream_turn
 
 configure_observability(get_settings())
@@ -42,6 +43,9 @@ graph = build_graph(get_settings())
 class ChatRequest(BaseModel):
     message: str = Field(min_length=1, max_length=4000)
     thread_id: str = Field(min_length=1, max_length=64)
+    profile_id: str = Field(
+        default="general", min_length=1, max_length=40, pattern=r"^[a-z0-9-]+$"
+    )
 
 
 def _sse(payload: dict) -> str:
@@ -61,10 +65,28 @@ def health() -> dict:
     }
 
 
+@app.get("/api/profiles/{profile_id}")
+def recruiter_profile(profile_id: str) -> dict:
+    try:
+        return get_profile(profile_id).public_payload()
+    except KeyError as exc:
+        raise HTTPException(status_code=404, detail="Portfolio profile not found") from exc
+
+
 @app.post("/api/chat")
 async def chat(req: ChatRequest, request: Request) -> StreamingResponse:
+    try:
+        profile = get_profile(req.profile_id)
+    except KeyError as exc:
+        raise HTTPException(status_code=404, detail="Portfolio profile not found") from exc
+
+    # A thread can never carry context across different recruiter profiles.
+    thread_id = f"{profile.profile_id}:{req.thread_id}"
+
     async def event_stream() -> AsyncIterator[str]:
-        events = astream_turn(graph, req.message, req.thread_id)
+        events = astream_turn(
+            graph, req.message, thread_id, profile.prompt_context
+        )
         try:
             async for event in events:
                 if await request.is_disconnected():
@@ -79,5 +101,9 @@ async def chat(req: ChatRequest, request: Request) -> StreamingResponse:
 _dist = REPO_ROOT / "web" / "dist"
 if _dist.is_dir():
     from fastapi.staticfiles import StaticFiles
+
+    @app.get("/p/{profile_id}", include_in_schema=False)
+    def recruiter_profile_page(profile_id: str):
+        return FileResponse(_dist / "index.html")
 
     app.mount("/", StaticFiles(directory=_dist, html=True), name="web")

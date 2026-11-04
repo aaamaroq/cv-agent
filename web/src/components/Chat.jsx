@@ -46,22 +46,13 @@ const COPY = {
   },
 }
 
-function getThreadId() {
-  let id = localStorage.getItem('thread_id')
-  if (!id) {
-    id = crypto.randomUUID()
-    localStorage.setItem('thread_id', id)
-  }
-  return id
-}
-
-export default function Chat({ language }) {
+export default function Chat({ language, profile, profileId }) {
   const copy = COPY[language]
   const [messages, setMessages] = useState([])
   const [input, setInput] = useState('')
   const [busy, setBusy] = useState(false)
   const [error, setError] = useState(false)
-  const [threadId] = useState(getThreadId)
+  const [threadId] = useState(() => crypto.randomUUID())
   const bottomRef = useRef(null)
   const textareaRef = useRef(null)
 
@@ -106,7 +97,7 @@ export default function Chat({ language }) {
       const response = await fetch('/api/chat', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ message, thread_id: threadId }),
+        body: JSON.stringify({ message, thread_id: threadId, profile_id: profileId }),
       })
       if (!response.ok || !response.body) throw new Error(`HTTP ${response.status}`)
 
@@ -147,6 +138,8 @@ export default function Chat({ language }) {
 
   const lastQuestion = [...messages].reverse().find((message) => message.role === 'user')?.content
   const empty = messages.length === 0
+  const welcome = profile?.welcome?.[language] ?? copy.welcome
+  const questions = profile?.questions?.[language] ?? copy.questions
 
   return (
     <section className="studio-chat" aria-labelledby="chat-title">
