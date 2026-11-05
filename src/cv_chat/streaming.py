@@ -136,13 +136,21 @@ def _config(thread_id: str) -> dict:
     config = {"configurable": {"thread_id": thread_id}}
     callback = langfuse_callback_handler()
     if callback is not None:
+        profile_id, separator, _ = thread_id.partition(":")
+        if not separator:
+            profile_id = "general"
         config.update(
             {
                 "run_name": "cv-chat-turn",
                 "metadata": {
                     "langfuse_session_id": thread_id,
                     "langfuse_trace_name": "CV chat turn",
-                    "langfuse_tags": ["cv-chat", "langgraph"],
+                    "profile_id": profile_id,
+                    "langfuse_tags": [
+                        "cv-chat",
+                        "langgraph",
+                        f"profile:{profile_id}",
+                    ],
                 },
                 "callbacks": [callback],
             }

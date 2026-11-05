@@ -13,6 +13,7 @@ stream event shapes verifiable without a live probe run.
 
 import sys
 import unittest
+from dataclasses import replace
 from unittest import mock
 
 sys.path.insert(0, str(__import__("pathlib").Path(__file__).resolve().parents[1] / "src"))
@@ -69,6 +70,29 @@ def run_scenario(message, verdict="ok", neutral="n/a", rejects=0):
 
 
 class StreamContractTests(unittest.TestCase):
+    def test_low_reasoning_is_only_set_for_gpt_oss_answer_model(self):
+        calls = []
+
+        def recording_llm(**kwargs):
+            calls.append(kwargs)
+            return _fake_llm(**kwargs)
+
+        with mock.patch.object(graph_mod, "ChatOpenRouter", recording_llm):
+            graph_mod.build_graph(
+                replace(get_settings(), model="openai/gpt-oss-20b:nitro")
+            )
+
+        self.assertEqual(calls[0]["reasoning"], {"effort": "low"})
+        self.assertNotIn("reasoning", calls[1])
+
+        calls.clear()
+        with mock.patch.object(graph_mod, "ChatOpenRouter", recording_llm):
+            graph_mod.build_graph(
+                replace(get_settings(), model="mistralai/mistral-nemo")
+            )
+
+        self.assertNotIn("reasoning", calls[0])
+
     def test_benign_streams_chatbot_once(self):
         tokens, restarts = run_scenario("¿Qué sabe de Kafka?")
         self.assertEqual([n for n, _ in tokens], ["chatbot"])
