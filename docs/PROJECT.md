@@ -8,7 +8,7 @@ An AI-powered portfolio chatbot: a LangGraph agent that answers recruiters' ques
 
 ## AI-engineering signals in this repo
 
-- Multi-node LLM orchestration with LangGraph (a compiled agent subgraph + conditional routing + a checkpointer on the parent).
+- Multi-node LLM orchestration with LangGraph (a compiled agent subgraph + conditional routing; browser-supplied history keeps each request stateless).
 - Layered input/output guardrails with a separate classifier model (structured JSON output, fail-open) — see the ADR below.
 - Adversarial robustness: prompt-injection and leading-question handling, verified by an evaluation harness (`scripts/guardrail_probe.py`).
 - Token streaming over Server-Sent Events from FastAPI to a React UI.
@@ -36,17 +36,19 @@ An AI-powered portfolio chatbot: a LangGraph agent that answers recruiters' ques
 ## HTTP API
 
 - `GET /api/health`
+- `GET /api/warmup`
 - `GET /api/profiles/{profile_id}`
 - `POST /api/chat`
 - `GET /p/{profile_id}`
 
 ## Configuration
 
+- `CV_PATH` (default `cv.md`)
+- `CV_PROFILES_DIR` (default `profiles`)
 - `CV_MODEL` (default `mistralai/mistral-nemo`)
 - `CV_GUARDRAIL_MODEL` (default `meta-llama/llama-3.1-8b-instruct`)
 - `OPENROUTER_API_KEY` (default ``)
 - `CV_TEMPERATURE` (default `0.3`)
-- `CV_MAX_THREADS` (default `32`)
 - `CV_HISTORY_WINDOW` (default `24`)
 - `CV_LLM_TIMEOUT_S` (default `60`)
 - `CV_LANGFUSE_ENABLED` (default `true`)
@@ -81,3 +83,4 @@ An AI-powered portfolio chatbot: a LangGraph agent that answers recruiters' ques
 - **ADR 0013: Use Mistral Nemo for answers and Llama for guardrails** (Accepted · 2026-11-04)
 - **ADR 0014: Curated recruiter profiles without conversation resumption** (Accepted · 2026-11-04)
 - **ADR 0015: Offer-grounded recruiter profiles with an unchanged general portfolio** (Accepted · 2026-11-04)
+- **ADR 0016: Stateless chat turns and Cloud Storage content** (Accepted · 2026-11-05)

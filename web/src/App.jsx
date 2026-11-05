@@ -42,14 +42,14 @@ const COPY = {
     stack: [
       ['Interfaz', 'React · Vite'],
       ['API y streaming', 'FastAPI · Server-Sent Events'],
-      ['Orquestación y memoria', 'LangGraph · memoria por hilo'],
+      ['Orquestación y contexto', 'LangGraph · historial acotado enviado por el navegador'],
       ['Modelos', 'OpenRouter · respuesta y clasificador configurables por separado'],
     ],
     contextTitle: 'Contexto y revisión',
     contextNote:
       'Las respuestas se apoyan en cv.md y docs/PROJECT.md. El borrador se revisa antes de mostrarse; el grafo puede reintentarlo una vez o recurrir a una respuesta alternativa.',
-    memoryTitle: 'Conversación',
-    memoryNote: 'MemorySaver mantiene el contexto del hilo en memoria mientras el backend está en ejecución.',
+    memoryTitle: 'Contexto de conversación',
+    memoryNote: 'El navegador conserva el contexto de esta pestaña y lo envía en cada pregunta; cada turno del servidor es independiente.',
     observabilityTitle: 'Observabilidad opcional',
     observabilityNote: 'El proyecto puede enviar trazas a Langfuse y OpenTelemetry cuando están configurados; no es una señal en vivo de esta pantalla.',
     moreInfo: 'Más información sobre Adrián y el asistente',
@@ -101,14 +101,14 @@ const COPY = {
     stack: [
       ['Interface', 'React · Vite'],
       ['API and streaming', 'FastAPI · Server-Sent Events'],
-      ['Orchestration and memory', 'LangGraph · per-thread memory'],
+      ['Orchestration and context', 'LangGraph · bounded history sent by the browser'],
       ['Models', 'OpenRouter · separately configurable answer and classifier models'],
     ],
     contextTitle: 'Context and review',
     contextNote:
       'Answers are grounded in cv.md and docs/PROJECT.md. The draft is reviewed before it appears; the graph can retry once or fall back to an alternative response.',
-    memoryTitle: 'Conversation',
-    memoryNote: 'MemorySaver keeps the thread context in memory while the backend is running.',
+    memoryTitle: 'Conversation context',
+    memoryNote: 'The browser keeps this tab’s conversation context and sends it with each question; each server turn is independent.',
     observabilityTitle: 'Optional observability',
     observabilityNote: 'The project can send traces to Langfuse and OpenTelemetry when configured; this is not a live signal on this screen.',
     moreInfo: 'More about Adrián and the assistant',
@@ -217,6 +217,12 @@ export default function App() {
       })
 
     return () => controller.abort()
+  }, [profileId])
+
+  useEffect(() => {
+    if (profileId !== 'general') return undefined
+    fetch('/api/warmup', { cache: 'no-store', keepalive: true }).catch(() => {})
+    return undefined
   }, [profileId])
 
   useEffect(() => {

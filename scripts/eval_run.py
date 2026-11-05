@@ -26,9 +26,9 @@ ROOT = Path(__file__).resolve().parents[1]
 sys.path.insert(0, str(ROOT / "src"))
 
 from langchain_core.callbacks import UsageMetadataCallbackHandler  # noqa: E402
-from langchain_core.messages import AIMessage, HumanMessage  # noqa: E402
+from langchain_core.messages import HumanMessage  # noqa: E402
 
-from cv_chat import guardrails  # noqa: E402
+from cv_chat import guardrails, streaming  # noqa: E402
 from cv_chat.config import get_settings  # noqa: E402
 from cv_chat.graph import build_graph  # noqa: E402
 from cv_chat.prompts import SYSTEM_PROMPT, source_of_truth  # noqa: E402
@@ -113,12 +113,23 @@ def run_case(graph: Any, case: dict[str, Any], run_id: str) -> dict[str, Any]:
     started = time.perf_counter()
 
     try:
-        for namespace, update in graph.stream(
+        gate = streaming._TokenGate()
+        answer_tokens: list[str] = []
+        for event in graph.stream(
             {"messages": [HumanMessage(content=case["question"])]},
             config,
-            stream_mode="updates",
+            stream_mode=["messages", "updates"],
             subgraphs=True,
         ):
+            namespace, mode, event_data = event
+            for payload in gate.feed(streaming._decode_graph_event(event)):
+                if payload.get("restart"):
+                    answer_tokens.clear()
+                elif "token" in payload:
+                    answer_tokens.append(payload["token"])
+            if mode != "updates" or not isinstance(event_data, dict):
+                continue
+            update = event_data
             for node, data in update.items():
                 node_path.append({"namespace": list(namespace), "node": node})
                 if not isinstance(data, dict):
@@ -137,13 +148,10 @@ def run_case(graph: Any, case: dict[str, Any], run_id: str) -> dict[str, Any]:
                 elif node == "deflect":
                     deflect_used = True
 
-        state = graph.get_state(config).values
-        messages = state.get("messages", [])
-        final_message = next(
-            (message for message in reversed(messages) if isinstance(message, AIMessage)),
-            None,
-        )
-        answer = guardrails.message_text(final_message) if final_message else ""
+        for payload in gate.finish():
+            if "token" in payload:
+                answer_tokens.append(payload["token"])
+        answer = "".join(answer_tokens)
         token_models, token_totals = _tokens_by_model(usage)
         return {
             "record_type": "case",

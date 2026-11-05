@@ -7,7 +7,7 @@ the system prompt, FastAPI + React/Tailwind UI, LLMs via OpenRouter.
 
 ## Stack
 
-- **Backend:** Python, LangChain, LangGraph (StateGraph + MemorySaver), FastAPI
+- **Backend:** Python, LangChain, stateless LangGraph turns, FastAPI
 - **Frontend:** Vite, React, Tailwind CSS v4
 - **Models:** via OpenRouter (`ChatOpenRouter`); `CV_MODEL` and
   `CV_GUARDRAIL_MODEL` select the answer and guardrail models. The answer model
@@ -43,8 +43,9 @@ app, or `http://localhost:5173/p/acme` in the Vite development stack. It changes
 the chat greeting, suggested questions, and the emphasis used when answering;
 all claims remain grounded in the CV and project notes. Profiles live in
 `profiles/*.json`, are loaded by `src/cv_chat/profiles.py`, and are exposed as
-presentation data through `GET /api/profiles/{profile_id}`. Criteria and the
-evidence map stay server-side.
+presentation data through `GET /api/profiles/{profile_id}`. Profiles are read on
+demand so Cloud Run can load reviewed JSON files from its private Cloud Storage
+mount; criteria and the evidence map stay server-side.
 
 An anonymized agentic-runtime role demo is also available at
 `http://localhost:5173/p/conversational-crm-agentic-runtime` in the development
@@ -70,9 +71,10 @@ map. Review the generated profile—especially the direct/related evidence label
 and its positioning—before deploying it. It does not track later changes to
 either source; regenerate a profile manually when needed.
 
-Each page load starts a fresh chat thread. The backend keeps its in-memory
-context only for turns in that open thread; reloading or returning to the link
-does not resume the previous conversation.
+The browser keeps up to 11 completed turns in the current page and sends them
+with each question. The API and LangGraph graph are stateless, so a Cloud Run
+restart does not interrupt context while the page remains open. Reloading starts
+a fresh conversation.
 
 ### Docker development mode (automatic updates)
 
@@ -148,6 +150,10 @@ cp cv.md.sample cv.md
 | `CV_GUARDRAIL_MODEL` | `meta-llama/llama-3.1-8b-instruct` | Model ID for input/output guardrails; configurable separately from the chat model |
 | `OPENROUTER_API_KEY` | *(empty)* | OpenRouter key; required for live runs (graph still builds offline) |
 | `CV_TEMPERATURE` | `0.3` | Sampling temperature |
+| `CV_HISTORY_WINDOW` | `24` | Maximum messages accepted as browser-supplied conversation context |
+| `CV_LLM_TIMEOUT_S` | `60` | Timeout for chat and guardrail model calls |
+| `CV_PATH` | `cv.md` | CV source path; Cloud Run uses the read-only Cloud Storage mount |
+| `CV_PROFILES_DIR` | `profiles` | Curated profile directory; Cloud Run uses the read-only Cloud Storage mount |
 | `CV_LANGFUSE_ENABLED` | `true` | Enables local Langfuse tracing when the credentials and base URL are set |
 | `LANGFUSE_PUBLIC_KEY` | *(empty)* | Langfuse project public key |
 | `LANGFUSE_SECRET_KEY` | *(empty)* | Langfuse project secret key |
@@ -164,17 +170,25 @@ scripts/
   build_profile.py      # generates reviewed recruiter profiles from job offers
   gen_project_brief.py   # derives docs/PROJECT.md from the live repo
   guardrail_probe.py     # guardrail evaluation ladder
-profiles/                 # public profile JSON; never store raw offers here
+  profiles/                 # reviewed profile JSON; never store raw offers here
 src/cv_chat/
   config.py              # settings
   prompts.py             # loads CV, project notes, and server-resolved profile focus
   guardrails.py          # input/output guardrail prompts + checks
-  graph.py               # LangGraph: guardrail nodes + agent subgraph + checkpointer
+  graph.py               # LangGraph: guardrail nodes + stateless agent subgraph
   server.py              # FastAPI: endpoints, SSE streaming, and HTTP tracing
   observability.py        # Optional OpenTelemetry + Langfuse integration
 web/                     # Vite + React + Tailwind UI
+Dockerfile.backend       # Cloud Run API image; frontend is deployed separately
 compose.yaml              # Local app + self-hosted Langfuse services
 ```
+
+## Cloud deployment
+
+The production split deployment uses Vercel for `web/` and Cloud Run for the
+FastAPI API. Cloud Run mounts the private CV/profile bucket read-only; see
+[`docs/deployment-continuation.md`](docs/deployment-continuation.md) for the
+environment and deployment steps.
 
 ## Project memory
 

@@ -54,6 +54,8 @@ const COPY = {
   },
 }
 
+const MAX_HISTORY_MESSAGES = 22
+
 export default function Chat({ language, profile, profileId }) {
   const copy = COPY[language]
   const [messages, setMessages] = useState([])
@@ -61,6 +63,7 @@ export default function Chat({ language, profile, profileId }) {
   const [busy, setBusy] = useState(false)
   const [error, setError] = useState(false)
   const [threadId] = useState(() => crypto.randomUUID())
+  const conversationHistory = useRef([])
   const bottomRef = useRef(null)
   const textareaRef = useRef(null)
 
@@ -90,16 +93,20 @@ export default function Chat({ language, profile, profileId }) {
   async function send(text, { retry = false } = {}) {
     const message = text.trim()
     if (!message || busy) return
+    const history = conversationHistory.current.slice(-MAX_HISTORY_MESSAGES)
 
     setError(false)
     setInput('')
     if (textareaRef.current) textareaRef.current.style.height = ''
     setBusy(true)
     setMessages((previous) => {
+      const retryIndex = retry
+        ? previous.findLastIndex(
+            (item) => item.role === 'user' && item.content === message,
+          )
+        : -1
       const withoutRetriedQuestion =
-        retry && previous.at(-1)?.role === 'user' && previous.at(-1).content === message
-          ? previous.slice(0, -1)
-          : previous
+        retryIndex >= 0 ? previous.slice(0, retryIndex) : previous
 
       return [
         ...withoutRetriedQuestion,
@@ -112,13 +119,20 @@ export default function Chat({ language, profile, profileId }) {
       const response = await fetch('/api/chat', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ message, thread_id: threadId, profile_id: profileId }),
+        body: JSON.stringify({
+          message,
+          thread_id: threadId,
+          profile_id: profileId,
+          history,
+        }),
       })
       if (!response.ok || !response.body) throw new Error(`HTTP ${response.status}`)
 
       const reader = response.body.getReader()
       const decoder = new TextDecoder()
       let buffer = ''
+      let answer = ''
+      let completed = false
       for (;;) {
         const { done, value } = await reader.read()
         if (done) break
@@ -131,6 +145,7 @@ export default function Chat({ language, profile, profileId }) {
           const payload = JSON.parse(line.slice(6))
           if (payload.error) throw new Error(payload.error)
           if (payload.restart) {
+            answer = ''
             setMessages((previous) => {
               const next = [...previous]
               const last = next.at(-1)
@@ -140,9 +155,19 @@ export default function Chat({ language, profile, profileId }) {
               return next
             })
           }
-          if (payload.token) appendToken(payload.token)
+          if (payload.token) {
+            answer += payload.token
+            appendToken(payload.token)
+          }
+          if (payload.done) completed = true
         }
       }
+      if (!completed || !answer) throw new Error('The response stream ended early')
+      conversationHistory.current = [
+        ...history,
+        { role: 'user', content: message },
+        { role: 'assistant', content: answer },
+      ].slice(-MAX_HISTORY_MESSAGES)
     } catch {
       setError(true)
       removeEmptyAssistant()

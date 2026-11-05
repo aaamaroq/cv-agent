@@ -1,0 +1,15 @@
+{
+  "$schema": "https://openapi.vercel.sh/vercel.json",
+  "buildCommand": "npm run build",
+  "outputDirectory": "dist",
+  "routes": [
+    {
+      "src": "/api/(.*)",
+      "dest": "${CV_API_URL}/api/$1",
+      "env": ["CV_API_URL"]
+    },
+    { "handle": "filesystem" },
+    { "src": "/p/([a-z0-9-]+)$", "dest": "/index.html" },
+    { "src": "/(.*)", "dest": "/index.html" }
+  ]
+}

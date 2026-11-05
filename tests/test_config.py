@@ -26,7 +26,6 @@ class SettingsValidationTests(unittest.TestCase):
         self.assertEqual(
             settings.guardrail_model, "meta-llama/llama-3.1-8b-instruct"
         )
-        self.assertEqual(settings.max_threads, 32)
         self.assertEqual(settings.history_window, 24)
         self.assertEqual(settings.llm_timeout_s, 60.0)
         self.assertFalse(settings.langfuse_configured)
@@ -50,17 +49,14 @@ class SettingsValidationTests(unittest.TestCase):
 
     def test_minimum_allowed_resource_limits_are_valid(self):
         settings = self.settings_from_env({
-            "CV_MAX_THREADS": "1",
             "CV_HISTORY_WINDOW": "4",
             "CV_LLM_TIMEOUT_S": "0.001",
         })
-        self.assertEqual(settings.max_threads, 1)
         self.assertEqual(settings.history_window, 4)
         self.assertEqual(settings.llm_timeout_s, 0.001)
 
     def test_out_of_range_limits_fail_during_settings_load(self):
         cases = (
-            ({"CV_MAX_THREADS": "0"}, "CV_MAX_THREADS"),
             ({"CV_HISTORY_WINDOW": "3"}, "CV_HISTORY_WINDOW"),
             ({"CV_LLM_TIMEOUT_S": "0"}, "CV_LLM_TIMEOUT_S"),
             ({"CV_LLM_TIMEOUT_S": "0.0005"}, "CV_LLM_TIMEOUT_S"),

@@ -1,6 +1,9 @@
 """Curated recruiter profiles and profile-scoped chat requests."""
 
 import sys
+import json
+import shutil
+import tempfile
 import unittest
 from pathlib import Path
 from unittest.mock import patch
@@ -10,6 +13,7 @@ sys.path.insert(0, str(Path(__file__).resolve().parents[1] / "src"))
 from fastapi.testclient import TestClient  # noqa: E402
 
 from cv_chat import server  # noqa: E402
+from cv_chat import profiles  # noqa: E402
 from cv_chat.profiles import get_profile  # noqa: E402
 
 
@@ -31,6 +35,40 @@ class RecruiterProfileTests(unittest.TestCase):
         self.assertEqual(profile.prompt_context, "")
         self.assertEqual(profile.requirements, ())
         self.assertEqual(profile.evidence, ())
+
+    def test_profile_is_read_from_configured_directory_on_each_request(self):
+        source = Path(__file__).resolve().parents[1] / "profiles" / "acme.json"
+        with tempfile.TemporaryDirectory() as temp_dir:
+            profile_path = Path(temp_dir) / "acme.json"
+            shutil.copyfile(source, profile_path)
+            with patch.object(profiles, "PROFILES_DIR", Path(temp_dir)):
+                self.assertEqual(get_profile("acme").company_name, "Acme (demo)")
+                data = json.loads(profile_path.read_text(encoding="utf-8"))
+                data["company_name"] = "Uploaded profile"
+                profile_path.write_text(json.dumps(data), encoding="utf-8")
+                self.assertEqual(get_profile("acme").company_name, "Uploaded profile")
+
+    def test_uploaded_profile_id_and_evidence_references_are_validated(self):
+        with tempfile.TemporaryDirectory() as temp_dir:
+            profile_path = Path(temp_dir) / "acme.json"
+            with patch.object(profiles, "PROFILES_DIR", Path(temp_dir)):
+                profile_path.write_text(json.dumps({"id": "other"}), encoding="utf-8")
+                with self.assertRaisesRegex(ValueError, "match its filename"):
+                    get_profile("acme")
+
+                profile_path.write_text(
+                    json.dumps({
+                        "id": "acme",
+                        "requirements": [{"id": "req-1"}],
+                        "evidence": [{"requirement_id": "missing"}],
+                    }),
+                    encoding="utf-8",
+                )
+                with self.assertRaisesRegex(ValueError, "unknown requirement"):
+                    get_profile("acme")
+
+                with self.assertRaises(KeyError):
+                    get_profile("../cv")
 
     def test_offer_profile_keeps_role_rubric_server_side(self):
         profile = get_profile("conversational-crm-agentic-runtime")
@@ -82,8 +120,8 @@ class RecruiterProfileTests(unittest.TestCase):
     def test_chat_uses_server_profile_context_and_scopes_thread_id(self):
         calls = []
 
-        async def fake_stream(_graph, message, thread_id, profile_context):
-            calls.append((message, thread_id, profile_context))
+        async def fake_stream(_graph, message, thread_id, profile_context, history=()):
+            calls.append((message, thread_id, profile_context, history))
             yield {"token": "ok"}
             yield {"done": True}
 
@@ -94,6 +132,10 @@ class RecruiterProfileTests(unittest.TestCase):
                     "message": "¿Qué experiencia tiene con MCP?",
                     "thread_id": "same-browser-id",
                     "profile_id": "acme",
+                    "history": [
+                        {"role": "user", "content": "first question"},
+                        {"role": "assistant", "content": "first answer"},
+                    ],
                 },
             )
             general = client.post(
@@ -102,6 +144,7 @@ class RecruiterProfileTests(unittest.TestCase):
                     "message": "¿Qué experiencia aporta Adrián a un puesto de AI Engineer?",
                     "thread_id": "same-browser-id",
                     "profile_id": "general",
+                    "history": [],
                 },
             )
             invalid_profile = client.post(
@@ -112,15 +155,31 @@ class RecruiterProfileTests(unittest.TestCase):
                     "profile_id": "unknown",
                 },
             )
+            invalid_history = client.post(
+                "/api/chat",
+                json={
+                    "message": "Hello",
+                    "thread_id": "same-browser-id",
+                    "history": [{"role": "user", "content": "unpaired"}],
+                },
+            )
 
         self.assertEqual(response.status_code, 200)
         self.assertEqual(general.status_code, 200)
         self.assertEqual(invalid_profile.status_code, 404)
+        self.assertEqual(invalid_history.status_code, 422)
         self.assertEqual(len(calls), 2)
-        message, thread_id, profile_context = calls[0]
+        message, thread_id, profile_context, history = calls[0]
         self.assertEqual(message, "¿Qué experiencia tiene con MCP?")
         self.assertEqual(thread_id, "acme:same-browser-id")
         self.assertIn("not evidence about Adrián or the company", profile_context)
+        self.assertEqual(
+            history,
+            [
+                {"role": "user", "content": "first question"},
+                {"role": "assistant", "content": "first answer"},
+            ],
+        )
         self.assertEqual(calls[1][0], "¿Qué experiencia aporta Adrián a un puesto de AI Engineer?")
         self.assertEqual(calls[1][1], "general:same-browser-id")
         self.assertEqual(calls[1][2], "")

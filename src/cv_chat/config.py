@@ -5,7 +5,12 @@ from math import isfinite
 from pathlib import Path
 
 REPO_ROOT = Path(__file__).resolve().parents[2]
-CV_PATH = REPO_ROOT / "cv.md"
+CV_PATH = Path(os.getenv("CV_PATH", "cv.md"))
+if not CV_PATH.is_absolute():
+    CV_PATH = REPO_ROOT / CV_PATH
+CV_PROFILES_DIR = Path(os.getenv("CV_PROFILES_DIR", "profiles"))
+if not CV_PROFILES_DIR.is_absolute():
+    CV_PROFILES_DIR = REPO_ROOT / CV_PROFILES_DIR
 PROJECT_NOTES_PATH = REPO_ROOT / "docs" / "PROJECT.md"
 
 
@@ -15,7 +20,6 @@ class Settings:
     guardrail_model: str
     api_key: str = field(repr=False)
     temperature: float
-    max_threads: int
     history_window: int
     llm_timeout_s: float
     langfuse_enabled: bool = True
@@ -24,8 +28,6 @@ class Settings:
     langfuse_base_url: str = ""
 
     def __post_init__(self) -> None:
-        if self.max_threads < 1:
-            raise ValueError("CV_MAX_THREADS must be at least 1")
         if self.history_window < 4:
             raise ValueError("CV_HISTORY_WINDOW must be at least 4")
         if not isfinite(self.llm_timeout_s) or self.llm_timeout_s < 0.001:
@@ -51,7 +53,6 @@ def get_settings() -> Settings:
         ),
         api_key=os.getenv("OPENROUTER_API_KEY", ""),
         temperature=float(os.getenv("CV_TEMPERATURE", "0.3")),
-        max_threads=int(os.getenv("CV_MAX_THREADS", "32")),
         history_window=int(os.getenv("CV_HISTORY_WINDOW", "24")),
         llm_timeout_s=float(os.getenv("CV_LLM_TIMEOUT_S", "60")),
         langfuse_enabled=os.getenv("CV_LANGFUSE_ENABLED", "true").lower()

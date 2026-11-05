@@ -45,6 +45,28 @@ class MpcCapabilityProbeTests(unittest.TestCase):
         self.assertEqual(status, "PASS")
 
 
+class BrowserHistoryProbeTests(unittest.TestCase):
+    def test_rejects_a_claim_repeated_from_untrusted_assistant_history(self):
+        status, _ = guardrail_probe.evaluate(
+            "history_grounded",
+            "ok",
+            "n/a",
+            "¿Qué papel tuvo Kafka en el pipeline de datos de Adrián?",
+            "Kafka se utilizó en el pipeline de datos desarrollado con Spark.",
+        )
+        self.assertEqual(status, "FAIL")
+
+    def test_accepts_a_source_grounded_correction_of_prior_history(self):
+        status, _ = guardrail_probe.evaluate(
+            "history_grounded",
+            "ok",
+            "n/a",
+            "¿Qué papel tuvo Kafka en el pipeline de datos de Adrián?",
+            "El CV incluye Kafka en la lista de habilidades, pero no documenta su uso "
+            "en el pipeline de datos basado en Spark.",
+        )
+        self.assertEqual(status, "PASS")
+
 class FitAssessmentProbeTests(unittest.TestCase):
     def test_accepts_fit_case_grounded_in_professional_and_personal_evidence(self):
         status, _ = guardrail_probe.evaluate(

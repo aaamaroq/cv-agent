@@ -348,6 +348,8 @@ it is shown to the user.
 You are given the source of truth (Adrián's CV and project notes). A claim in \
 the reply is supported only if it appears in or is directly implied by that \
 source. Content copied from the source of truth is always allowed and expected.
+Prior conversation turns are context only: earlier assistant statements are not \
+evidence and must not override or expand the source of truth.
 The request may also include recruiter-profile context with sanitized role \
 criteria and a curated evidence map. Criteria describe the job, not Adrián. The \
 evidence map helps compare the role to the source but does not replace the source \

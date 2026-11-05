@@ -1,25 +1,24 @@
 """Translate graph events into client SSE payloads.
 
 Public interface:
-  stream_turn(graph, message, thread_id)  -> Iterator[dict]   (sync)
-  astream_turn(graph, message, thread_id) -> AsyncIterator[dict] (async)
+  stream_turn(graph, message, thread_id, profile_context, history)  -> Iterator[dict]
+  astream_turn(graph, message, thread_id, profile_context, history) -> AsyncIterator[dict]
 
 Both paths adapt LangGraph events into the same wire events and share the
 token-gating policy: chatbot tokens are buffered until the output guardrail
 accepts them, rejected drafts are discarded, and canned deflect/fallback text
-streams immediately. Conversation history and per-thread coordination live in
-``conversation_runtime.py``.
+streams immediately. The browser supplies bounded, completed conversation turns
+so requests remain independent of the serving instance.
 """
 
 from __future__ import annotations
 
 from dataclasses import dataclass
-from typing import Any, AsyncIterator, Iterator
+from typing import Any, AsyncIterator, Iterator, Sequence
 
-from langchain_core.messages import HumanMessage
+from langchain_core.messages import AIMessage, BaseMessage, HumanMessage
 
 from .config import get_settings
-from .conversation_runtime import ConversationRuntime
 from .observability import langfuse_callback_handler
 
 CHATBOT_NODE = "chatbot"
@@ -103,18 +102,34 @@ class _TokenGate:
 
 
 # ---------------------------------------------------------------------------
-# Conversation runtime
-# ---------------------------------------------------------------------------
-
-_runtime = ConversationRuntime(get_settings())
-
-
-# ---------------------------------------------------------------------------
 # Public interface
 # ---------------------------------------------------------------------------
 
-def _input(message: str, profile_context: str = "") -> dict:
-    return {"messages": [HumanMessage(message)], "profile_context": profile_context}
+def _history_message(message: Any) -> BaseMessage:
+    role = message.role if hasattr(message, "role") else message["role"]
+    content = message.content if hasattr(message, "content") else message["content"]
+    return HumanMessage(content) if role == "user" else AIMessage(content)
+
+
+def _input(
+    message: str,
+    profile_context: str = "",
+    history: Sequence[Any] = (),
+) -> dict:
+    bounded_history = list(history)[-(get_settings().history_window - 1) :]
+    if bounded_history:
+        first_role = (
+            bounded_history[0].role
+            if hasattr(bounded_history[0], "role")
+            else bounded_history[0]["role"]
+        )
+        if first_role != "user":
+            bounded_history = bounded_history[1:]
+    if len(bounded_history) % 2:
+        bounded_history = bounded_history[:-1]
+    messages = [_history_message(item) for item in bounded_history]
+    messages.append(HumanMessage(message))
+    return {"messages": messages, "profile_context": profile_context}
 
 
 def _config(thread_id: str) -> dict:
@@ -140,21 +155,21 @@ def stream_turn(
     message: str,
     thread_id: str,
     profile_context: str = "",
+    history: Sequence[Any] = (),
 ) -> Iterator[dict[str, Any]]:
     """Translate LangGraph events into wire events (sync)."""
-    with _runtime.turn(graph, thread_id):
-        gate = _TokenGate()
-        try:
-            for event in graph.stream(
-                _input(message, profile_context),
-                _config(thread_id),
-                stream_mode=["messages", "updates"],
-                subgraphs=True,
-            ):
-                yield from gate.feed(_decode_graph_event(event))
-            yield from gate.finish()
-        except Exception as exc:  # noqa: BLE001
-            yield {"error": str(exc)}
+    gate = _TokenGate()
+    try:
+        for event in graph.stream(
+            _input(message, profile_context, history),
+            _config(thread_id),
+            stream_mode=["messages", "updates"],
+            subgraphs=True,
+        ):
+            yield from gate.feed(_decode_graph_event(event))
+        yield from gate.finish()
+    except Exception as exc:  # noqa: BLE001
+        yield {"error": str(exc)}
 
 
 async def astream_turn(
@@ -162,25 +177,25 @@ async def astream_turn(
     message: str,
     thread_id: str,
     profile_context: str = "",
+    history: Sequence[Any] = (),
 ) -> AsyncIterator[dict[str, Any]]:
     """Translate LangGraph events into wire events (async, supports cancellation)."""
-    async with _runtime.aturn(graph, thread_id):
-        gate = _TokenGate()
-        stream = graph.astream(
-            _input(message, profile_context),
-            _config(thread_id),
-            stream_mode=["messages", "updates"],
-            subgraphs=True,
-        )
-        try:
-            async for event in stream:
-                for wire in gate.feed(_decode_graph_event(event)):
-                    yield wire
-            for wire in gate.finish():
+    gate = _TokenGate()
+    stream = graph.astream(
+        _input(message, profile_context, history),
+        _config(thread_id),
+        stream_mode=["messages", "updates"],
+        subgraphs=True,
+    )
+    try:
+        async for event in stream:
+            for wire in gate.feed(_decode_graph_event(event)):
                 yield wire
-        except Exception as exc:  # noqa: BLE001
-            yield {"error": str(exc)}
-        finally:
-            aclose = getattr(stream, "aclose", None)
-            if aclose is not None:
-                await aclose()
+        for wire in gate.finish():
+            yield wire
+    except Exception as exc:  # noqa: BLE001
+        yield {"error": str(exc)}
+    finally:
+        aclose = getattr(stream, "aclose", None)
+        if aclose is not None:
+            await aclose()

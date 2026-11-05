@@ -1,11 +1,14 @@
 """Load curated recruiter profiles and build server-side answer focus."""
 
 import json
+import re
 from dataclasses import dataclass
+from pathlib import Path
 
-from .config import REPO_ROOT
+from .config import CV_PROFILES_DIR
 
-PROFILES_DIR = REPO_ROOT / "profiles"
+PROFILES_DIR = CV_PROFILES_DIR
+PROFILE_ID_PATTERN = re.compile(r"^[a-z0-9-]{1,40}$")
 
 
 @dataclass(frozen=True)
@@ -101,44 +104,51 @@ GENERAL_PROFILE = RecruiterProfile(
 )
 
 
-def _load_profiles() -> dict[str, RecruiterProfile]:
-    profiles = {GENERAL_PROFILE.profile_id: GENERAL_PROFILE}
-    for path in sorted(PROFILES_DIR.glob("*.json")):
-        data = json.loads(path.read_text(encoding="utf-8"))
-        requirements = tuple(data.get("requirements", ()))
-        requirement_ids = {item["id"] for item in requirements}
-        evidence = tuple(data.get("evidence", ()))
-        for item in evidence:
-            if item["requirement_id"] not in requirement_ids:
-                raise ValueError(
-                    f"Profile {path.name} evidence references unknown requirement "
-                    f"{item['requirement_id']!r}"
-                )
-        profile = RecruiterProfile(
-            profile_id=data["id"],
-            company_name=data.get("company_name"),
-            target_role=data.get("target_role"),
-            themes=tuple(data.get("themes", ())),
-            welcome=data.get("welcome", {}),
-            questions={
-                language: tuple(questions)
-                for language, questions in data.get("questions", {}).items()
-            },
-            positioning=data.get("positioning", {}),
-            requirements=requirements,
-            evidence=evidence,
-        )
-        if profile.profile_id != path.stem:
-            raise ValueError(f"Profile id must match its filename: {path.name}")
-        if profile.profile_id in profiles:
-            raise ValueError(f"Duplicate recruiter profile id: {profile.profile_id}")
-        profiles[profile.profile_id] = profile
-    return profiles
+def _load_profile(path: Path, requested_id: str) -> RecruiterProfile:
+    data = json.loads(path.read_text(encoding="utf-8"))
+    if not isinstance(data, dict):
+        raise ValueError(f"Profile {path.name} must contain a JSON object")
 
+    requirements = tuple(data.get("requirements", ()))
+    requirement_ids = {item["id"] for item in requirements}
+    evidence = tuple(data.get("evidence", ()))
+    for item in evidence:
+        if item["requirement_id"] not in requirement_ids:
+            raise ValueError(
+                f"Profile {path.name} evidence references unknown requirement "
+                f"{item['requirement_id']!r}"
+            )
 
-PROFILES = _load_profiles()
+    profile = RecruiterProfile(
+        profile_id=data["id"],
+        company_name=data.get("company_name"),
+        target_role=data.get("target_role"),
+        themes=tuple(data.get("themes", ())),
+        welcome=data.get("welcome", {}),
+        questions={
+            language: tuple(questions)
+            for language, questions in data.get("questions", {}).items()
+        },
+        positioning=data.get("positioning", {}),
+        requirements=requirements,
+        evidence=evidence,
+    )
+    if profile.profile_id != path.stem or profile.profile_id != requested_id:
+        raise ValueError(f"Profile id must match its filename: {path.name}")
+    return profile
 
 
 def get_profile(profile_id: str) -> RecruiterProfile:
-    """Return a curated profile, or raise ``KeyError`` for an unknown slug."""
-    return PROFILES[profile_id]
+    """Load one curated profile by slug, or raise ``KeyError`` if it is missing.
+
+    Reading on demand keeps Cloud Storage volume uploads visible without an
+    application image rebuild or a process restart.
+    """
+    if profile_id == GENERAL_PROFILE.profile_id:
+        return GENERAL_PROFILE
+    if not PROFILE_ID_PATTERN.fullmatch(profile_id):
+        raise KeyError(profile_id)
+    path = PROFILES_DIR / f"{profile_id}.json"
+    if not path.is_file():
+        raise KeyError(profile_id)
+    return _load_profile(path, profile_id)

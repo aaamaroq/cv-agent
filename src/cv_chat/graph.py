@@ -2,7 +2,6 @@ from typing import Annotated, Literal, TypedDict
 
 from langchain_core.messages import AIMessage, BaseMessage, HumanMessage, SystemMessage
 from langchain_openrouter import ChatOpenRouter
-from langgraph.checkpoint.memory import MemorySaver
 from langgraph.graph import START, END, StateGraph
 from langgraph.graph.message import RemoveMessage, add_messages
 from langgraph.graph.state import CompiledStateGraph
@@ -166,12 +165,11 @@ def build_graph(settings: Settings) -> CompiledStateGraph:
     builder.add_edge("fallback", END)
     agent = builder.compile()
 
-    # The whole turn is a reusable subgraph; the parent graph is a thin wrapper
-    # that owns the checkpointer. server.py must stream with subgraphs=True so
-    # the inner chatbot/deflect/fallback nodes (and the output_guardrail retry
-    # signal) keep surfacing — see tests/test_stream_contract.py.
+    # The whole turn is a reusable subgraph; the parent graph is a thin wrapper.
+    # Conversation history is supplied by the client on every request, so this
+    # graph deliberately has no process-local checkpointer.
     parent = StateGraph(State)
     parent.add_node("agent", agent)
     parent.add_edge(START, "agent")
     parent.add_edge("agent", END)
-    return parent.compile(checkpointer=MemorySaver())
+    return parent.compile()
