@@ -97,7 +97,7 @@ gcloud run deploy cv-chat-api \
   --allow-unauthenticated \
   --min 0 --max 1 \
   --memory 1Gi --cpu 1 \
-  --set-env-vars "CV_MODEL=mistralai/mistral-nemo,CV_GUARDRAIL_MODEL=meta-llama/llama-3.1-8b-instruct,CV_PATH=/mnt/cv-content/cv.md,CV_PROFILES_DIR=/mnt/cv-content/profiles,CV_LANGFUSE_ENABLED=false" \
+  --set-env-vars "CV_MODEL=openai/gpt-oss-20b,CV_GUARDRAIL_MODEL=openai/gpt-oss-20b,CV_PATH=/mnt/cv-content/cv.md,CV_PROFILES_DIR=/mnt/cv-content/profiles,CV_LANGFUSE_ENABLED=false" \
   --set-secrets "OPENROUTER_API_KEY=OPENROUTER_API_KEY:latest" \
   --add-volume "mount-path=/mnt/cv-content,type=cloud-storage,bucket=BUCKET,readonly=true,mount-options=implicit-dirs;metadata-cache-ttl-secs=0"
 ```
