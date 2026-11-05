@@ -45,8 +45,8 @@ An AI-powered portfolio chatbot: a LangGraph agent that answers recruiters' ques
 
 - `CV_PATH` (default `cv.md`)
 - `CV_PROFILES_DIR` (default `profiles`)
-- `CV_MODEL` (default `mistralai/mistral-nemo`)
-- `CV_GUARDRAIL_MODEL` (default `meta-llama/llama-3.1-8b-instruct`)
+- `CV_MODEL` (default `openai/gpt-oss-20b`)
+- `CV_GUARDRAIL_MODEL` (default `openai/gpt-oss-20b`)
 - `OPENROUTER_API_KEY` (default ``)
 - `CV_TEMPERATURE` (default `0.3`)
 - `CV_HISTORY_WINDOW` (default `24`)
@@ -84,3 +84,4 @@ An AI-powered portfolio chatbot: a LangGraph agent that answers recruiters' ques
 - **ADR 0014: Curated recruiter profiles without conversation resumption** (Accepted · 2026-11-04)
 - **ADR 0015: Offer-grounded recruiter profiles with an unchanged general portfolio** (Accepted · 2026-11-04)
 - **ADR 0016: Stateless chat turns and Cloud Storage content** (Accepted · 2026-11-05)
+- **ADR 0017: Use gpt-oss-20b for answers and guardrail checks** (Accepted · 2026-11-05)

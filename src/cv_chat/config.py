@@ -47,9 +47,9 @@ class Settings:
 @lru_cache(maxsize=1)
 def get_settings() -> Settings:
     return Settings(
-        model=os.getenv("CV_MODEL", "mistralai/mistral-nemo"),
+        model=os.getenv("CV_MODEL", "openai/gpt-oss-20b"),
         guardrail_model=os.getenv(
-            "CV_GUARDRAIL_MODEL", "meta-llama/llama-3.1-8b-instruct"
+            "CV_GUARDRAIL_MODEL", "openai/gpt-oss-20b"
         ),
         api_key=os.getenv("OPENROUTER_API_KEY", ""),
         temperature=float(os.getenv("CV_TEMPERATURE", "0.3")),

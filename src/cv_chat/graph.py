@@ -41,12 +41,16 @@ def route_output(state: State) -> Literal["chatbot", "fallback", "__end__"]:
 
 def build_graph(settings: Settings) -> CompiledStateGraph:
     timeout_ms = int(settings.llm_timeout_s * 1000)
+    answer_model_options = {}
+    if settings.model.split(":", 1)[0] == "openai/gpt-oss-20b":
+        answer_model_options["reasoning"] = {"effort": "low"}
     llm = ChatOpenRouter(
         model=settings.model,
         api_key=settings.api_key or "offline-placeholder",
         temperature=settings.temperature,
         max_tokens=2048,
         timeout=timeout_ms,
+        **answer_model_options,
     )
     guardrail_llm = ChatOpenRouter(
         model=settings.guardrail_model,

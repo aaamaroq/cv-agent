@@ -1,202 +1,200 @@
-# CV Web — AI-Powered Interactive Portfolio
+# CV Agent — Interactive AI Portfolio
 
-Conversational chatbot over Adrián's CV. **Phase 1 (🛹 Skateboard):** LangGraph
-with a `chatbot` node wrapped in input/output guardrail nodes (see
-`ADR/0001-input-output-guardrails.md`), CV + derived project notes injected into
-the system prompt, FastAPI + React/Tailwind UI, LLMs via OpenRouter.
+An AI-powered portfolio that lets recruiters explore Adrián Amaro’s experience
+through a conversational CV assistant.
 
-## Stack
+**Purpose:** make CV information easier to explore while demonstrating how to
+build a grounded, guarded, streaming LLM application.
 
-- **Backend:** Python, LangChain, stateless LangGraph turns, FastAPI
-- **Frontend:** Vite, React, Tailwind CSS v4
-- **Models:** via OpenRouter (`ChatOpenRouter`); `CV_MODEL` and
-  `CV_GUARDRAIL_MODEL` select the answer and guardrail models. The answer model
-  defaults to `mistralai/mistral-nemo`; the guardrail model defaults to
-  `meta-llama/llama-3.1-8b-instruct`.
-- **Observability:** self-hosted Langfuse with OpenTelemetry request spans and
-  LangChain/LangGraph callbacks
+## In 30 seconds
 
-## Run
+- **For recruiters:** ask about Adrián’s skills, projects, experience, or fit for
+  a role. Answers are grounded in reviewed source material.
+- **For technical readers:** inspect a Python/FastAPI service, a LangGraph agent
+  with input and output guardrails, and a React chat UI with server-sent events.
+- **Conversation context:** the browser sends a bounded history with each
+  request. The server is stateless; reloading the page starts a new chat.
+- **Privacy:** `cv.md` contains personal information, is gitignored, and is not
+  included in the repository.
 
-Terminal 1 — backend (port 8000):
+## For recruiters
 
-```bash
-python3 -m venv .venv && .venv/bin/pip install -r requirements.txt
-export OPENROUTER_API_KEY="sk-or-..."   # required for live runs
-PYTHONPATH=src .venv/bin/uvicorn cv_chat.server:app --reload
-```
+The assistant is designed to answer questions about Adrián’s documented
+experience. Recruiter profiles can tailor the introduction, suggested questions,
+and emphasis for a role; they do not add unsupported experience or claims.
 
-Terminal 2 — frontend (port 5173):
+Try the general chat at `/` or, after starting the app locally, open the sample
+profiles at `/p/acme` and `/p/conversational-crm-agentic-runtime`.
 
-```bash
-cd web && npm install && npm run dev
-```
+## For technical readers
 
-Open http://localhost:5173
+### Stack
 
-### Personalized recruiter link
+- **Backend:** Python, FastAPI, LangChain, LangGraph
+- **Frontend:** React, Vite, Tailwind CSS v4
+- **Inference:** OpenRouter, with separately configurable answer and guardrail
+  models
+- **Streaming:** Server-Sent Events (SSE)
+- **Observability:** optional OpenTelemetry and Langfuse integrations; traces
+  include a profile ID in metadata and a `profile:<id>` tag
 
-The root portfolio keeps the general recruiter greeting, questions, and answer
-context; it never inherits criteria from a personalized route. The demo company
-profile is available at `http://localhost:8000/p/acme` when using the packaged
-app, or `http://localhost:5173/p/acme` in the Vite development stack. It changes
-the chat greeting, suggested questions, and the emphasis used when answering;
-all claims remain grounded in the CV and project notes. Profiles live in
-`profiles/*.json`, are loaded by `src/cv_chat/profiles.py`, and are exposed as
-presentation data through `GET /api/profiles/{profile_id}`. Profiles are read on
-demand so Cloud Run can load reviewed JSON files from its private Cloud Storage
-mount; criteria and the evidence map stay server-side.
+### Request flow
 
-An anonymized agentic-runtime role demo is also available at
-`http://localhost:5173/p/conversational-crm-agentic-runtime` in the development
-stack. The title remains the same as the general portfolio, while the friendly
-intro, evidence summary, and suggested questions help recruiters assess the role
-fit. It does not claim experience with offer requirements that the CV does not
-document.
+`React UI → FastAPI → input guardrail → answer model → output guardrail → SSE`
 
-Generate a profile from a local UTF-8 job-offer text file:
+The graph can deflect hostile or manipulative input, retry an answer once when
+the output review finds an issue, and use a fallback when the retry is rejected.
+Draft chatbot tokens are held until the output review accepts them; canned
+deflections and fallback responses are streamed directly.
 
-```bash
-OPENROUTER_API_KEY="sk-or-..." PYTHONPATH=src .venv/bin/python scripts/build_profile.py \
-  --id acme-ai-engineer --company Acme --role "AI Engineer" \
-  --offer /path/to/job-offer.txt
-```
+### Engineering decisions
 
-The one-time generator sends the offer, CV, and project notes to the configured
-OpenRouter model. It validates exact offer quotes for sanitized criteria and
-exact CV/project quotes for mapped evidence, then stores the criteria and the
-evidence map for server-side prompting. It does not store the raw offer or the
-offer quotes, and `GET /api/profiles/{profile_id}` does not expose the evidence
-map. Review the generated profile—especially the direct/related evidence labels
-and its positioning—before deploying it. It does not track later changes to
-either source; regenerate a profile manually when needed.
+- **Grounded answers:** the CV and generated project notes are the sources of
+  truth. Prior assistant messages are context, not evidence.
+- **Stateless turns:** the browser keeps up to 11 completed turns in the current
+  page and sends them with each question. No conversation state is stored by the
+  backend.
+- **Reviewed recruiter profiles:** role criteria and evidence maps stay
+  server-side. Profile files are validated and loaded on demand.
+- **Trace grouping:** each Langfuse trace includes `profile_id` metadata and a
+  `profile:<id>` tag, and its session ID is prefixed with the profile ID.
+- **Private content:** the CV is mounted at runtime and is not bundled into the
+  backend image or committed to Git.
 
-The browser keeps up to 11 completed turns in the current page and sends them
-with each question. The API and LangGraph graph are stateless, so a Cloud Run
-restart does not interrupt context while the page remains open. Reloading starts
-a fresh conversation.
+## Run locally
 
-### Docker development mode (automatic updates)
+You need Python, Node.js, and an OpenRouter API key for live chat.
 
-For code changes, use the development Compose overlay instead of the packaged
-app command above:
-
-```bash
-docker compose -f compose.yaml -f compose.dev.yaml up --build
-```
-
-Open http://localhost:5173. Frontend changes update through Vite; edits in
-`src/` or `docs/` restart the API automatically. Stop with `Ctrl+C`. Changes to
-dependencies still require rebuilding the relevant image with `--build`.
-
-## Local Docker stack with Langfuse
-
-The local Compose stack runs the React UI + FastAPI app and a self-hosted
-Langfuse instance. Chat traces include the full model inputs/outputs, guardrail
-calls, retries, and rejected drafts, so use this setup only for your own local
-debugging. OpenRouter still receives the prompts used to generate responses.
-
-1. Create the private CV file if needed:
+1. Create your private CV file from the template and add your own information:
 
    ```bash
    cp cv.md.sample cv.md
    ```
 
-2. Copy `.env.example` to `.env`. Add your `OPENROUTER_API_KEY`, set the local
-   Langfuse user password and project API keys (`pk-lf-...` and `sk-lf-...`),
-   and replace the secret placeholders. Generate 64-character hex secrets with
-   `openssl rand -hex 32`; use a different value for `ENCRYPTION_KEY`,
-   `NEXTAUTH_SECRET`, `SALT`, and each database/storage password. The Langfuse
-   project public/secret keys in `.env` are also used by the app.
-
-3. Build and start the complete stack:
+2. Start the API in one terminal:
 
    ```bash
-   docker compose up --build
+   python3 -m venv .venv
+   .venv/bin/pip install -r requirements.txt
+   export OPENROUTER_API_KEY="your-openrouter-key"
+   PYTHONPATH=src .venv/bin/uvicorn cv_chat.server:app --reload
    ```
 
-   Open the chat at http://localhost:8000 and Langfuse at
-   http://localhost:3000. The initial Langfuse account and project are created
-   from the `.env` values on the first start. All published ports bind to
-   `127.0.0.1`.
+3. Start the web app in another terminal:
 
-`docker compose down` stops the services while keeping traces and databases in
-named volumes. `docker compose down -v` also deletes that persisted Langfuse
-data. The `cv.md` host file is mounted read-only and is not copied into the app
-image.
+   ```bash
+   cd web
+   npm install
+   npm run dev
+   ```
 
-The chat trace groups each turn under its conversation `thread_id`. OpenTelemetry
-captures request latency across the full SSE response; the Langfuse callback
-captures the LangGraph run and nested model calls, including token usage. Cost
-estimates depend on Langfuse having current pricing for the selected provider
-and model; compare them with OpenRouter billing. If Langfuse is disabled or
-unavailable, the chat continues without telemetry.
+Open <http://localhost:5173>. The API runs at <http://localhost:8000>.
 
-## First run (collaborators)
+## Project documentation
 
-`cv.md` is intentionally gitignored — it contains personal data — but it is
-required at runtime and by the tests. Copy the template and fill it in with
-your own details:
+- [Architecture decisions](ADR/)
+- [Generated project brief](docs/PROJECT.md) — a factual summary derived from
+  the codebase
+- [Deployment guide](docs/deployment-continuation.md) — the documented target is
+  a Vercel frontend and a Cloud Run API
+
+<details>
+<summary><strong>Build and evaluate</strong></summary>
+
+Run the offline test suite:
 
 ```bash
-cp cv.md.sample cv.md
+PYTHONPATH=src .venv/bin/python -m unittest discover -s tests
 ```
 
-## Configuration
+Run the guardrail evaluation ladder (requires a configured OpenRouter key):
 
-| Env var | Default | Purpose |
+```bash
+PYTHONPATH=src .venv/bin/python scripts/guardrail_probe.py
+```
+
+Run the local development stack with automatic reloads:
+
+```bash
+docker compose -f compose.yaml -f compose.dev.yaml up --build
+```
+
+</details>
+
+<details>
+<summary><strong>Recruiter profiles</strong></summary>
+
+Profiles live in `profiles/*.json`. A profile can customize the greeting,
+questions, and answer emphasis while keeping its criteria and evidence map on the
+server. Generate a profile from a local UTF-8 job-offer text file:
+
+```bash
+OPENROUTER_API_KEY="your-openrouter-key" PYTHONPATH=src \
+  .venv/bin/python scripts/build_profile.py \
+  --id acme-ai-engineer --company Acme --role "AI Engineer" \
+  --offer /path/to/job-offer.txt
+```
+
+The generator sends the offer, CV, and project notes to the configured
+OpenRouter model. It validates quoted criteria and evidence, but does not store
+the raw offer. Review the generated profile before using it.
+
+</details>
+
+<details>
+<summary><strong>Local Docker and observability</strong></summary>
+
+The full local Compose stack runs the app and a self-hosted Langfuse instance.
+Copy `.env.example` to `.env`, provide the OpenRouter key, and replace the local
+service secrets before starting it:
+
+```bash
+docker compose up --build
+```
+
+The app is at <http://localhost:8000>; Langfuse is at <http://localhost:3000>.
+Local traces include model inputs and outputs, guardrail calls, retries, and
+rejected drafts. Use this stack only for your own local debugging. OpenRouter
+also receives prompts used to generate responses.
+
+Langfuse currently runs locally only. The production goal is to expose it as a
+separately managed Google Cloud service with authenticated access. Store
+Langfuse's generated application/database secrets and the app's Langfuse API
+secret in Google Secret Manager; do not hardcode credentials in source or bake
+them into container images. The Google Cloud Langfuse deployment is not yet
+implemented.
+
+</details>
+
+<details>
+<summary><strong>Configuration and code map</strong></summary>
+
+| Variable | Default | Purpose |
 |---|---|---|
-| `CV_MODEL` | `mistralai/mistral-nemo` | OpenRouter slug for the chat model |
-| `CV_GUARDRAIL_MODEL` | `meta-llama/llama-3.1-8b-instruct` | Model ID for input/output guardrails; configurable separately from the chat model |
-| `OPENROUTER_API_KEY` | *(empty)* | OpenRouter key; required for live runs (graph still builds offline) |
-| `CV_TEMPERATURE` | `0.3` | Sampling temperature |
-| `CV_HISTORY_WINDOW` | `24` | Maximum messages accepted as browser-supplied conversation context |
-| `CV_LLM_TIMEOUT_S` | `60` | Timeout for chat and guardrail model calls |
-| `CV_PATH` | `cv.md` | CV source path; Cloud Run uses the read-only Cloud Storage mount |
-| `CV_PROFILES_DIR` | `profiles` | Curated profile directory; Cloud Run uses the read-only Cloud Storage mount |
-| `CV_LANGFUSE_ENABLED` | `true` | Enables local Langfuse tracing when the credentials and base URL are set |
-| `LANGFUSE_PUBLIC_KEY` | *(empty)* | Langfuse project public key |
-| `LANGFUSE_SECRET_KEY` | *(empty)* | Langfuse project secret key |
-| `LANGFUSE_BASE_URL` | *(empty)* | Langfuse API base URL; Compose uses `http://langfuse-web:3000` internally |
+| `CV_MODEL` | `openai/gpt-oss-20b` | Answer model on OpenRouter (low reasoning effort) |
+| `CV_GUARDRAIL_MODEL` | `openai/gpt-oss-20b` | Input/output review model |
+| `OPENROUTER_API_KEY` | *(empty)* | Required for live model calls |
+| `CV_TEMPERATURE` | `0.3` | Answer model sampling temperature |
+| `CV_HISTORY_WINDOW` | `24` | Maximum browser-supplied history messages |
+| `CV_LLM_TIMEOUT_S` | `60` | Model-call timeout in seconds |
+| `CV_PATH` | `cv.md` | CV source file path |
+| `CV_PROFILES_DIR` | `profiles` | Recruiter profile directory |
+| `CV_LANGFUSE_ENABLED` | `true` | Enable Langfuse tracing when configured |
+| `LANGFUSE_PUBLIC_KEY` | *(empty)* | Langfuse project key |
+| `LANGFUSE_SECRET_KEY` | *(empty)* | Langfuse project secret |
+| `LANGFUSE_BASE_URL` | *(empty)* | Langfuse API base URL |
 
-## Project layout
+Key files:
 
-```
-cv.md                    # CV content (source of truth → system prompt)
-docs/PROJECT.md          # GENERATED project memory (see below — never hand-edit)
-AGENTS.md                # rules for agents/humans working on this repo
-ADR/                     # architecture decision records
-scripts/
-  build_profile.py      # generates reviewed recruiter profiles from job offers
-  gen_project_brief.py   # derives docs/PROJECT.md from the live repo
-  guardrail_probe.py     # guardrail evaluation ladder
-  profiles/                 # reviewed profile JSON; never store raw offers here
-src/cv_chat/
-  config.py              # settings
-  prompts.py             # loads CV, project notes, and server-resolved profile focus
-  guardrails.py          # input/output guardrail prompts + checks
-  graph.py               # LangGraph: guardrail nodes + stateless agent subgraph
-  server.py              # FastAPI: endpoints, SSE streaming, and HTTP tracing
-  observability.py        # Optional OpenTelemetry + Langfuse integration
-web/                     # Vite + React + Tailwind UI
-Dockerfile.backend       # Cloud Run API image; frontend is deployed separately
-compose.yaml              # Local app + self-hosted Langfuse services
-```
+- `src/cv_chat/graph.py` — LangGraph nodes and routing
+- `src/cv_chat/guardrails.py` — input classification and output review
+- `src/cv_chat/server.py` — HTTP API and SSE endpoint
+- `src/cv_chat/streaming.py` — graph-to-SSE event adapter
+- `web/src/` — React portfolio and chat interface
+- `scripts/guardrail_probe.py` — guardrail evaluation cases
+- `Dockerfile.backend` — backend-only image for the Cloud Run deployment target
 
-## Cloud deployment
+`docs/PROJECT.md` is generated; update it with
+`.venv/bin/python scripts/gen_project_brief.py` after architecture changes.
 
-The production split deployment uses Vercel for `web/` and Cloud Run for the
-FastAPI API. Cloud Run mounts the private CV/profile bucket read-only; see
-[`docs/deployment-continuation.md`](docs/deployment-continuation.md) for the
-environment and deployment steps.
-
-## Project memory
-
-`docs/PROJECT.md` is a second source of truth the assistant and its output
-guardrail read at runtime. It is **derived from the repo** (graph nodes, API,
-config, ADRs, deps), so it can only describe what the project actually *is* —
-never a planned feature. Regenerate it after any architecture change:
-
-```bash
-.venv/bin/python scripts/gen_project_brief.py
-```
+</details>

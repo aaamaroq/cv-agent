@@ -138,18 +138,31 @@ class GraphEventAdapterTests(unittest.TestCase):
 
 class LangfuseConfigTests(unittest.TestCase):
 
-    def test_turn_config_sets_trace_name_session_and_callback(self):
+    def test_turn_config_sets_profile_metadata_tag_and_callback(self):
         callback = object()
         with mock.patch.object(streaming, "langfuse_callback_handler", return_value=callback):
-            config = streaming._config("thread-local-42")
+            config = streaming._config("acme:thread-local-42")
 
-        self.assertEqual(config["configurable"], {"thread_id": "thread-local-42"})
+        self.assertEqual(
+            config["configurable"], {"thread_id": "acme:thread-local-42"}
+        )
         self.assertEqual(config["run_name"], "cv-chat-turn")
         self.assertEqual(
-            config["metadata"]["langfuse_session_id"], "thread-local-42"
+            config["metadata"]["langfuse_session_id"], "acme:thread-local-42"
         )
         self.assertEqual(config["metadata"]["langfuse_trace_name"], "CV chat turn")
+        self.assertEqual(config["metadata"]["profile_id"], "acme")
+        self.assertIn("profile:acme", config["metadata"]["langfuse_tags"])
         self.assertEqual(config["callbacks"], [callback])
+
+    def test_unscoped_turn_uses_general_profile_metadata(self):
+        with mock.patch.object(
+            streaming, "langfuse_callback_handler", return_value=object()
+        ):
+            config = streaming._config("thread-local-42")
+
+        self.assertEqual(config["metadata"]["profile_id"], "general")
+        self.assertIn("profile:general", config["metadata"]["langfuse_tags"])
 
     def test_turn_config_remains_valid_without_langfuse(self):
         with mock.patch.object(streaming, "langfuse_callback_handler", return_value=None):
