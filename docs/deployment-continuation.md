@@ -1,6 +1,27 @@
 # Deployment architecture — continuation notes
 
-Updated: 2026-11-05
+Updated: 2026-11-06
+
+## Deployment summary
+
+The bullets in this section are parsed verbatim into `docs/PROJECT.md` by
+`scripts/gen_project_brief.py`; keep them factual and stable.
+
+- Frontend: React/Vite app served by Vercel; `web/vercel.json` proxies `/api/*`
+  to the backend on the same origin.
+- Backend: FastAPI image built from `Dockerfile.backend` and served on Google
+  Cloud Run with minimum 0 and maximum 1 instances (scales to zero).
+- Image delivery: built with Cloud Build (`gcloud builds submit`) and pushed to
+  Artifact Registry.
+- Content: a private Cloud Storage bucket mounted read-only at
+  `/mnt/cv-content` holds `cv.md` and `profiles/*.json`.
+- Secrets: `OPENROUTER_API_KEY` comes from Secret Manager and is mapped into
+  the Cloud Run service.
+- IAM: the Cloud Run runtime service account holds `roles/storage.objectViewer`
+  on the content bucket.
+- Observability: Cloud Run writes request and error logs to Cloud Logging and
+  metrics to Cloud Monitoring by default; Langfuse tracing is optional and
+  controlled by `CV_LANGFUSE_ENABLED`.
 
 ## Goal
 
@@ -67,7 +88,10 @@ Do not upload the raw job offer.
 - **Observability:** the Langfuse Compose stack remains local debugging only.
   Decide later whether to disable tracing in production or use hosted Langfuse.
 
-## Remaining deployment steps
+## Deployment steps (completed 2026-11-06)
+
+All steps below were carried out; the section is kept as the record of what
+was deployed.
 
 1. Create a private Cloud Storage bucket and upload `cv.md` and reviewed
    `profiles/*.json` objects.
