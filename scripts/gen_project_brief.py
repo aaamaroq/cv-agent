@@ -13,6 +13,7 @@ It parses (it does not import, so it needs no runtime deps):
   - server.py    → HTTP endpoints
   - ADR/*.md     → decision records (title, status, date)
   - requirements.txt → declared stack
+  - docs/deployment-continuation.md → deployment summary bullets
 
 Deliberately excludes volatile signals (timestamps, git log) so the file is
 byte-stable for a given repo state and does not dirty the tree on every commit.
@@ -28,6 +29,8 @@ SRC = REPO_ROOT / "src" / "cv_chat"
 ADR_DIR = REPO_ROOT / "ADR"
 DOCS = REPO_ROOT / "docs"
 OUT = DOCS / "PROJECT.md"
+DEPLOYMENT_PATH = DOCS / "deployment-continuation.md"
+DEPLOYMENT_HEADING = "## Deployment summary"
 
 NODE_RE = re.compile(r'builder\.add_node\("([^"]+)"')
 EDGE_RE = re.compile(r'builder\.add_edge\((START|END|"[^"]+"),\s*(START|END|"[^"]+")\)')
@@ -91,6 +94,25 @@ def parse_stack() -> list[str]:
     return [f"- {lib}" for lib in libs]
 
 
+def parse_deployment() -> list[str]:
+    """Extract the ``## Deployment summary`` section verbatim from the notes.
+
+    Returns the non-empty lines of that section (bullets included) up to the
+    next heading, or an empty list when the notes or the section are missing.
+    """
+    lines = _read(DEPLOYMENT_PATH).splitlines()
+    for index, line in enumerate(lines):
+        if line.strip() == DEPLOYMENT_HEADING:
+            collected = []
+            for candidate in lines[index + 1 :]:
+                if candidate.startswith("## "):
+                    break
+                if candidate.strip():
+                    collected.append(candidate.rstrip())
+            return collected
+    return []
+
+
 def build_brief() -> str:
     graph_src = _read(SRC / "graph.py")
     server_src = _read(SRC / "server.py")
@@ -145,6 +167,10 @@ def build_brief() -> str:
         "## Stack",
         "",
         *(parse_stack() or ["- (none declared)"]),
+        "",
+        "## Deployment",
+        "",
+        *(parse_deployment() or ["- (none parsed)"]),
         "",
         "## Decision records",
         "",

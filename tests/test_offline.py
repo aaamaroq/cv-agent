@@ -350,6 +350,27 @@ class ProjectBriefTests(unittest.TestCase):
             ['- `LANGFUSE_PUBLIC_KEY` (default ``)'],
         )
 
+    def test_parses_deployment_summary_from_notes(self):
+        rows = self.gen.parse_deployment()
+        self.assertTrue(rows, "deployment summary section missing")
+        self.assertTrue(all(row.startswith("- ") for row in rows))
+        joined = "\n".join(rows)
+        for service in ("Vercel", "Cloud Run", "Cloud Storage", "Secret Manager"):
+            self.assertIn(service, joined)
+
+    def test_deployment_summary_missing_notes_parse_empty(self):
+        original = self.gen.DEPLOYMENT_PATH
+        self.gen.DEPLOYMENT_PATH = Path("deployment-notes-that-do-not-exist.md")
+        try:
+            self.assertEqual(self.gen.parse_deployment(), [])
+        finally:
+            self.gen.DEPLOYMENT_PATH = original
+
+    def test_build_brief_includes_deployment_section(self):
+        brief = self.gen.build_brief()
+        self.assertIn("## Deployment", brief)
+        self.assertIn("Cloud Run", brief.split("## Deployment", 1)[1])
+
 
 if __name__ == "__main__":
     unittest.main()

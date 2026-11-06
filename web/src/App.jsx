@@ -39,6 +39,9 @@ const COPY = {
       ['Revisión → chat', 'Solo la respuesta aprobada se transmite al chat por SSE.'],
     ],
     stackTitle: 'Tecnologías',
+    deploymentTitle: 'Despliegue',
+    deploymentNote:
+      'Vercel sirve la interfaz React/Vite y reenvía /api/* a FastAPI en Cloud Run. Cloud Run puede escalar a cero; el CV y los perfiles se montan desde un bucket privado de Cloud Storage.',
     stack: [
       ['Interfaz', 'React · Vite'],
       ['API y streaming', 'FastAPI · Server-Sent Events'],
@@ -98,6 +101,9 @@ const COPY = {
       ['Review → chat', 'Only an approved answer is streamed to the chat over SSE.'],
     ],
     stackTitle: 'Technologies',
+    deploymentTitle: 'Deployment',
+    deploymentNote:
+      'Vercel serves the React/Vite frontend and proxies /api/* to FastAPI on Cloud Run. Cloud Run can scale to zero; the CV and profiles are mounted from a private Cloud Storage bucket.',
     stack: [
       ['Interface', 'React · Vite'],
       ['API and streaming', 'FastAPI · Server-Sent Events'],
@@ -384,6 +390,10 @@ export default function App() {
                       </div>
                     ))}
                   </dl>
+                </section>
+                <section>
+                  <h3>{copy.deploymentTitle}</h3>
+                  <p>{copy.deploymentNote}</p>
                 </section>
                 <section>
                   <h3>{copy.contextTitle}</h3>
