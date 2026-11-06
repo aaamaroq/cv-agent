@@ -105,3 +105,4 @@ The bullets in this section are parsed verbatim into `docs/PROJECT.md` by
 - **ADR 0015: Offer-grounded recruiter profiles with an unchanged general portfolio** (Accepted · 2026-11-04)
 - **ADR 0016: Stateless chat turns and Cloud Storage content** (Accepted · 2026-11-05)
 - **ADR 0017: Use gpt-oss-20b for answers and guardrail checks** (Accepted · 2026-11-05)
+- **ADR 0018: Answer blocked turns in the recruiter's language** (Accepted · 2026-11-06)

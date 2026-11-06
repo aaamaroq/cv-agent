@@ -134,10 +134,16 @@ def build_graph(settings: Settings) -> CompiledStateGraph:
         }
 
     def deflect(state: State) -> State:
-        content = (
-            guardrails.INJECTION_MESSAGE
-            if state.get("input_verdict") == "injection"
-            else guardrails.DEFLECT_MESSAGE
+        question = next(
+            (
+                guardrails.message_text(message)
+                for message in reversed(state["messages"])
+                if isinstance(message, HumanMessage)
+            ),
+            "",
+        )
+        content = guardrails.deflect_message(
+            question, state.get("input_verdict") or "abuse"
         )
         return {"messages": [AIMessage(content=content)]}
 
