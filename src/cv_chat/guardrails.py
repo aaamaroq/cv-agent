@@ -237,18 +237,15 @@ def fallback_message(question: str) -> str:
             )
         if is_spanish:
             return (
-                "Adrián aporta experiencia profesional en backend distribuido e "
-                "ingeniería de datos, además de su contribución a servidores MCP "
-                "para flujos empresariales con LLMs. Su chatbot con LangGraph y "
-                "OpenRouter es un proyecto personal; las fuentes no documentan "
-                "entregas profesionales de GenAI en producción."
+                "La experiencia profesional de Adrián incluye servidores MCP para "
+                "flujos de trabajo empresariales con LLMs y procesamiento de "
+                "datos con Spark; su chatbot con LangGraph y OpenRouter es un "
+                "proyecto personal."
             )
         return (
-            "Adrián brings professional experience in distributed backend and "
-            "data engineering, alongside his contribution to MCP servers for "
-            "enterprise LLM workflows. His LangGraph and OpenRouter chatbot is "
-            "a personal project; the sources do not document GenAI delivery in "
-            "production."
+            "Adrián's professional experience includes MCP servers for "
+            "enterprise LLM workflows and data processing with Spark; his "
+            "LangGraph and OpenRouter chatbot is a personal project."
         )
     if is_spanish:
         return FALLBACK_MESSAGE_ES
