@@ -1,0 +1,153 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>{{CANDIDATE_NAME}} - {{ROLE_TITLE}} CV</title>
+  <style>
+    @page { size: A4; margin: 10mm 12mm; }
+    * { box-sizing: border-box; }
+    body {
+      margin: 0;
+      color: #172a2a;
+      background: #fff;
+      font: 9.5pt/1.3 "Aptos", "Calibri", "Segoe UI", sans-serif;
+    }
+    main { max-width: 190mm; margin: 0 auto; }
+    header {
+      padding-bottom: 5mm;
+      border-bottom: 1.4pt solid #176b61;
+    }
+    .header-table, .role-title { width: 100%; border-collapse: collapse; }
+    .header-table td, .role-title td { vertical-align: top; }
+    .header-table td { vertical-align: bottom; }
+    .header-table td:last-child { width: 39%; }
+    h1 { margin: 0; font-size: 25pt; line-height: 1; font-weight: 700; }
+    .headline {
+      margin: 2.5mm 0 0;
+      color: #176b61;
+      font-size: 10pt;
+      font-weight: 700;
+    }
+    .contact { text-align: right; color: #526565; font-size: 8.7pt; line-height: 1.45; white-space: nowrap; }
+    a { color: inherit; text-decoration: none; }
+    .contact a, .links a { color: #176b61; }
+    .summary {
+      margin: 3mm 0 3mm;
+      padding: 2mm 3mm;
+      background-color: #eff5f1;
+      border-left: 2.5pt solid #176b61;
+    }
+    .summary p { margin: 0; }
+    .portfolio-invitation {
+      margin: -1mm 0 3mm;
+      padding: 1.5mm 3mm;
+      border-bottom: .6pt solid #bdd2ca;
+      color: #526565;
+      font-size: 8.7pt;
+    }
+    .portfolio-invitation a { color: #176b61; font-weight: 700; }
+    section { margin: 0 0 2.5mm; }
+    h2 {
+      margin: 0 0 1.3mm;
+      padding-bottom: 1mm;
+      border-bottom: .6pt solid #bdd2ca;
+      color: #176b61;
+      font-size: 10pt;
+      letter-spacing: 0;
+      text-transform: uppercase;
+    }
+    .role { margin: 0 0 1.8mm; }
+    .role:last-child { margin-bottom: 0; }
+    .role-title { margin-bottom: .5mm; }
+    .role-title td:last-child { width: 36%; text-align: right; }
+    h3 { margin: 0; font-size: 9.5pt; line-height: 1.25; }
+    time { color: #526565; font-size: 8.3pt; white-space: nowrap; }
+    .role p { margin: .6mm 0 0; color: #526565; font-size: 9.2pt; }
+    ul { margin: .8mm 0 0; padding-left: 4mm; }
+    li { margin: 0 0 .4mm; padding-left: .4mm; }
+    .skill-group { margin: 0 0 1.2mm; }
+    .skill-group:last-child { margin-bottom: 0; }
+    .skill-group strong { font-size: 9pt; }
+    .skill-group span { color: #526565; font-size: 9pt; }
+    .education p { margin: 0; color: #526565; font-size: 9pt; }
+    .education p { margin-bottom: 1mm; }
+    .links { font-size: 8.5pt; overflow-wrap: anywhere; }
+    .note { color: #526565; font-size: 8.7pt; }
+    @media screen {
+      body { padding: 14mm 10mm; background: #e8eeea; }
+      main { min-height: 271mm; padding: 13mm 15mm; background: white; box-shadow: 0 2mm 8mm #172a2a18; }
+    }
+    @media print {
+      body { print-color-adjust: exact; -webkit-print-color-adjust: exact; }
+      a { text-decoration: none; }
+    }
+  </style>
+</head>
+<body>
+  <main>
+    <header>
+      <table class="header-table"><tbody><tr>
+        <td>
+          <h1>{{CANDIDATE_NAME}}</h1>
+          <p class="headline">{{CV_HEADLINE}}</p>
+        </td>
+        <td class="contact">
+          {{LOCATION}} | <a href="{{GITHUB_URL}}">GitHub</a><br>
+          <a href="mailto:{{EMAIL}}">{{EMAIL}}</a><br>
+          <a href="{{PORTFOLIO_URL}}">Tailored portfolio</a>
+        </td>
+      </tr></tbody></table>
+    </header>
+
+    <div class="summary">
+      <p>{{ROLE_SPECIFIC_SUMMARY}}</p>
+    </div>
+    <p class="portfolio-invitation">{{PORTFOLIO_CTA_PREFIX}} <a href="{{PORTFOLIO_URL}}">{{PORTFOLIO_CTA_LINK_TEXT}}</a>.</p>
+
+    <section>
+      <h2>Professional Experience</h2>
+      <article class="role">
+        <table class="role-title"><tbody><tr><td><h3>{{ROLE_1_TITLE}} | {{EMPLOYER_1}}</h3></td><td><time>{{ROLE_1_DATES}}</time></td></tr></tbody></table>
+        <ul>
+          <li>{{ROLE_1_BULLET_1}}</li>
+          <li>{{ROLE_1_BULLET_2}}</li>
+          <li>{{ROLE_1_BULLET_3}}</li>
+        </ul>
+      </article>
+      <article class="role">
+        <table class="role-title"><tbody><tr><td><h3>{{ROLE_2_TITLE}} | {{EMPLOYER_2}}</h3></td><td><time>{{ROLE_2_DATES}}</time></td></tr></tbody></table>
+        <ul>
+          <li>{{ROLE_2_BULLET_1}}</li>
+          <li>{{ROLE_2_BULLET_2}}</li>
+          <li>{{ROLE_2_BULLET_3}}</li>
+        </ul>
+      </article>
+      <article class="role">
+        <table class="role-title"><tbody><tr><td><h3>{{ROLE_3_TITLE}} | {{EMPLOYER_3}}</h3></td><td><time>{{ROLE_3_DATES}}</time></td></tr></tbody></table>
+        <ul>
+          <li>{{ROLE_3_BULLET_1}}</li>
+          <li>{{ROLE_3_BULLET_2}}</li>
+        </ul>
+      </article>
+    </section>
+    <section>
+      <h2>Selected Project | Personal</h2>
+      <p><strong>{{PERSONAL_PROJECT_NAME}}</strong> | {{PERSONAL_PROJECT_DATES}}</p>
+      <p class="note">{{PERSONAL_PROJECT_DESCRIPTION}}</p>
+    </section>
+    <section>
+      <h2>Core Skills</h2>
+      <div class="skill-group"><strong>{{SKILL_GROUP_1_NAME}}:</strong> <span>{{SKILL_GROUP_1}}</span></div>
+      <div class="skill-group"><strong>{{SKILL_GROUP_2_NAME}}:</strong> <span>{{SKILL_GROUP_2}}</span></div>
+      <div class="skill-group"><strong>{{SKILL_GROUP_3_NAME}}:</strong> <span>{{SKILL_GROUP_3}}</span></div>
+    </section>
+    <section class="education">
+      <h2>Education</h2>
+      <p><strong>{{EDUCATION_1_DEGREE}}</strong> | {{EDUCATION_1_INSTITUTION}} | {{EDUCATION_1_DATES}}</p>
+      <p><strong>{{EDUCATION_2_DEGREE}}</strong> | {{EDUCATION_2_INSTITUTION}} | {{EDUCATION_2_DATES}}</p>
+      <p><strong>{{EDUCATION_3_DEGREE}}</strong> | {{EDUCATION_3_INSTITUTION}} | {{EDUCATION_3_DATES}}</p>
+    </section>
+  </main>
+</body>
+</html>

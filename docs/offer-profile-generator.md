@@ -41,10 +41,10 @@ Match the offer language.
 
 Generate two separate outputs:
 
-- `Profile adapted to the offer`
+- `Profile adapted to the offer`, presented through the personalized portfolio route when available
 - `PDF CV adapted to the offer`
 
-The profile is recruiter-facing and value-oriented. The CV is application-ready and presentation-ready.
+The profile is recruiter-facing and value-oriented. The CV is application-ready and presentation-ready. A standalone `profile.md` is not required unless explicitly requested; do not create one by default.
 
 ### 3) Profiling rule
 
@@ -102,7 +102,31 @@ The final CV must be a PDF for real application use.
 - role-specific emphasis
 - submission-ready
 
-The PDF can be produced from HTML/Markdown intermediate content, but the final artifact must be PDF.
+The PDF can be produced from HTML intermediate content, but the final artifact must be PDF.
+
+## CV template and file naming
+
+- Start from the reusable, tracked template at `templates/cv-template.html`. Preserve its typography, muted green accent, highlighted summary, visible portfolio invitation, and single-column reading order.
+- Keep the order: summary, a contextual portfolio CTA directly below the summary, professional experience, clearly labelled personal project(s), core skills, and education.
+- Keep the portfolio link in the CTA, not only in the contact links. Use the personalized offer route when available. The project date/title belongs on its own line; put its description on the following line.
+- Fill the template placeholders from documented sources only. Duplicate or remove role, skill-group, project, and education entries as needed; do not leave placeholders in the deliverable. Keep professional experience distinct from personal projects.
+- Name offer-specific artifacts with the profile slug under `artifacts/<profile-slug>/`: `<profile-slug>-cv.html` and `<profile-slug>-cv.pdf`. For example, `artifacts/industrial-genai-engineer/industrial-genai-engineer-cv.html` and `artifacts/industrial-genai-engineer/industrial-genai-engineer-cv.pdf`.
+- Do not save a generic template or source-of-truth content under `artifacts/`; that directory is git-ignored. Keep reusable templates under `templates/`.
+- Prefer a readable one-page CV when the evidence fits. Use two pages rather than making type too small or dropping important professional evidence.
+
+### HTML-to-PDF workflow
+
+Use WeasyPrint to render the tailored HTML. It preserves the template's CSS more faithfully than LibreOffice's HTML import/export. Keep WeasyPrint as a local document-generation tool; do not add it to the application's runtime dependencies just for CV output.
+
+```bash
+.venv/bin/weasyprint artifacts/<profile-slug>/<profile-slug>-cv.html artifacts/<profile-slug>/<profile-slug>-cv.pdf
+```
+
+Before delivery:
+
+- Open the PDF and inspect its visual layout; confirm the single-column flow, section hierarchy, colors, visible CTA, and line breaks.
+- Check the page count and paper size with `pdfinfo` and confirm text is extractable with `pdftotext`.
+- Confirm the PDF and HTML filenames contain the profile slug, the HTML has no unresolved placeholders, and no standalone `profile.md` was created unless requested.
 
 ## Output contract
 
@@ -180,6 +204,8 @@ Before returning the result, verify:
 - it is brief and recruiter-friendly
 - it clearly separates professional work from personal projects
 - the portfolio link is included where relevant
+- the CV has a contextual portfolio invitation immediately after its summary, not just an isolated URL
+- the CV uses the reusable single-column template and the final PDF was rendered with WeasyPrint and visually inspected
 - it does not invent evidence
 - it is truthful, specific, and useful
 
