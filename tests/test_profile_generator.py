@@ -19,8 +19,19 @@ from build_profile import (  # noqa: E402
 
 
 def _questions(prefix: str) -> list[SuggestedQuestion]:
+    if prefix == "ES":
+        return [
+            SuggestedQuestion(
+                label=f"Encaje {number}",
+                question=f"¿Por qué está Adrián preparado para este puesto {number}?",
+            )
+            for number in range(1, 4)
+        ]
     return [
-        SuggestedQuestion(label=f"{prefix} {number}", question=f"Question {number}?")
+        SuggestedQuestion(
+            label=f"{prefix} {number}",
+            question=f"Why is Adrián prepared for this role {number}?",
+        )
         for number in range(1, 4)
     ]
 
@@ -80,8 +91,16 @@ Completed a course covering Agentic RAG.
                     quote="Designed a personal LangGraph agent with guardrails.",
                 ),
             ],
-            positioning_es="Experiencia profesional relacionada con LLMs y agentes.",
-            positioning_en="Professional experience related to LLMs and agents.",
+            positioning_es=(
+                "Adrián es ingeniero de software con experiencia en backend distribuido, "
+                "pipelines de datos y despliegues cloud. También ha trabajado con LLMs "
+                "y proyectos personales con guardrails y evaluación."
+            ),
+            positioning_en=(
+                "Adrián is a software engineer with experience in distributed backend "
+                "systems, data pipelines and cloud deployment. He has also worked with "
+                "LLMs and personal projects that include guardrails and evaluation."
+            ),
             questions_es=_questions("ES"),
             questions_en=_questions("EN"),
         )
@@ -150,6 +169,89 @@ Completed a course covering Agentic RAG.
         with self.assertRaisesRegex(ValueError, "not focus on weaknesses or gaps"):
             validate_draft(draft, self.offer, self.cv, self.project_notes)
 
+    def test_rejects_generic_questions_that_do_not_answer_offer_fit(self):
+        draft = self.draft.model_copy(
+            update={
+                "questions_es": [
+                    self.draft.questions_es[0].model_copy(
+                        update={
+                            "label": "Tecnologías",
+                            "question": "¿Qué tecnologías usa Adrián?",
+                        }
+                    ),
+                    self.draft.questions_es[1].model_copy(
+                        update={"question": "¿Qué experiencia tiene Adrián en general?"}
+                    ),
+                    self.draft.questions_es[2].model_copy(
+                        update={"question": "¿Qué proyectos ha hecho Adrián?"}
+                    ),
+                ]
+            }
+        )
+        with self.assertRaisesRegex(ValueError, "recruiter fit"):
+            validate_draft(draft, self.offer, self.cv, self.project_notes)
+
+    def test_accepts_specific_experience_question(self):
+        draft = self.draft.model_copy(
+            update={
+                "questions_es": [
+                    self.draft.questions_es[0].model_copy(
+                        update={
+                            "question": (
+                                "¿Qué experiencia de Adrián se relaciona con "
+                                "los requisitos de este puesto?"
+                            )
+                        }
+                    ),
+                    *self.draft.questions_es[1:],
+                ]
+            }
+        )
+
+        validate_draft(draft, self.offer, self.cv, self.project_notes)
+
+    def test_rejects_questions_in_the_wrong_language(self):
+        spanish_questions_in_english = self.draft.model_copy(
+            update={"questions_en": self.draft.questions_es}
+        )
+        english_questions_in_spanish = self.draft.model_copy(
+            update={"questions_es": self.draft.questions_en}
+        )
+
+        with self.assertRaisesRegex(ValueError, "written in English"):
+            validate_draft(
+                spanish_questions_in_english, self.offer, self.cv, self.project_notes
+            )
+        with self.assertRaisesRegex(ValueError, "written in Spanish"):
+            validate_draft(
+                english_questions_in_spanish, self.offer, self.cv, self.project_notes
+            )
+
+    def test_accepts_natural_spanish_positioning(self):
+        draft = self.draft.model_copy(
+            update={
+                "positioning_es": (
+                    "Adrián es ingeniero de software con experiencia en sistemas "
+                    "distribuidos e ingeniería de datos; aplica inteligencia "
+                    "artificial en proyectos personales."
+                )
+            }
+        )
+
+        validate_draft(draft, self.offer, self.cv, self.project_notes)
+
+    def test_rejects_positioning_that_leads_with_mcp_over_professional_experience(self):
+        draft = self.draft.model_copy(
+            update={
+                "positioning_en": (
+                    "MCP and LangGraph are central to Adrián's profile. He built servers "
+                    "for enterprise LLM workflows and the experience is the main story."
+                )
+            }
+        )
+        with self.assertRaisesRegex(ValueError, "backend|data|professional experience"):
+            validate_draft(draft, self.offer, self.cv, self.project_notes)
+
     def test_public_profile_omits_offer_quotes_but_retains_private_evidence_map(self):
         document = build_profile_document("demo", "Demo", "AI Engineer", self.draft)
 
@@ -158,6 +260,8 @@ Completed a course covering Agentic RAG.
         self.assertIn(self.draft.evidence[0].quote, str(document))
         self.assertNotIn(self.offer, str(document))
         self.assertTrue(document["welcome"]["es"].startswith("¡Hola, equipo de Demo!"))
+        self.assertIn("https://webcv-agent.vercel.app/p/demo", document["positioning"]["es"])
+        self.assertIn("https://webcv-agent.vercel.app/p/demo", document["positioning"]["en"])
         self.assertIn("question", document["questions"]["es"][0])
 
 
