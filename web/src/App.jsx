@@ -21,6 +21,7 @@ const COPY = {
     dataEngineering: 'Datos',
     aiEngineering: 'IA aplicada',
     development: 'Formación profesional',
+    education: 'Educación',
     courseTitle: 'AI Agents Course — Hugging Face',
     courseCompletion: 'Completado en 2026',
     courseDescription:
@@ -83,6 +84,7 @@ const COPY = {
     dataEngineering: 'Data',
     aiEngineering: 'Applied AI',
     development: 'Professional development',
+    education: 'Education',
     courseTitle: 'AI Agents Course — Hugging Face',
     courseCompletion: 'Completed 2026',
     courseDescription:
@@ -173,6 +175,43 @@ const EXPERIENCE = {
       place: 'Granada',
       dates: 'May 2023 — May 2024',
       descriptionKey: 'siCongresosRole',
+    },
+  ],
+}
+
+const EDUCATION = {
+  es: [
+    {
+      title: 'Especialización en Ingeniería Informática',
+      institution: 'Universidad de Granada',
+      dates: '2023 — 2024',
+    },
+    {
+      title: 'Grado en Ingeniería Informática',
+      institution: 'Universidad de Jaén',
+      dates: '2019 — 2023',
+    },
+    {
+      title: 'Técnico Superior en Administración de Sistemas Informáticos',
+      institution: 'IES Las Fuentezuelas, Jaén',
+      dates: '2017 — 2019',
+    },
+  ],
+  en: [
+    {
+      title: 'Specialization in Computer Engineering',
+      institution: 'University of Granada',
+      dates: '2023 — 2024',
+    },
+    {
+      title: "Bachelor's Degree in Computer Engineering",
+      institution: 'University of Jaén',
+      dates: '2019 — 2023',
+    },
+    {
+      title: 'Higher National Diploma in Computer Systems Administration',
+      institution: 'IES Las Fuentezuelas, Jaén',
+      dates: '2017 — 2019',
     },
   ],
 }
@@ -342,6 +381,20 @@ export default function App() {
                 </p>
                 <p className="studio-development-description">{copy.courseDescription}</p>
               </section>
+              <section className="studio-education" aria-labelledby="education-title">
+                <h3 id="education-title">{copy.education}</h3>
+                <div className="studio-education-list">
+                  {EDUCATION[language].map((item) => (
+                    <article className="studio-education-item" key={`${item.title}-${item.institution}`}>
+                      <p className="studio-education-date">{item.dates}</p>
+                      <div>
+                        <h4>{item.title}</h4>
+                        <p>{item.institution}</p>
+                      </div>
+                    </article>
+                  ))}
+                </div>
+              </section>
               <div className="studio-skills">
                 <h3>{copy.skills}</h3>
                 <p><strong>{copy.backend}</strong> Java · Spring Boot · Python</p>
@@ -419,7 +472,7 @@ export default function App() {
           <a href="https://www.linkedin.com/in/adrian-amaro/" target="_blank" rel="noreferrer">
             {copy.linkedIn}
           </a>
-          <a href="https://github.com/aaamaroq/ecommerce" target="_blank" rel="noreferrer">
+          <a href="https://github.com/aaamaroq" target="_blank" rel="noreferrer">
             {copy.projectLink}
           </a>
         </nav>

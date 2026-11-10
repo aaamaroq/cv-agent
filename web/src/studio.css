@@ -976,6 +976,48 @@ a:active {
   line-height: 1.6;
 }
 
+.studio-education {
+  padding-top: 16px;
+  border-top: 1px solid var(--color-rule);
+}
+
+.studio-education h3 {
+  margin: 0 0 10px;
+  font-family: var(--font-display);
+  font-size: 1.05rem;
+}
+
+.studio-education-list {
+  display: grid;
+  gap: 12px;
+}
+
+.studio-education-item {
+  display: grid;
+  grid-template-columns: minmax(130px, 0.43fr) minmax(0, 1fr);
+  gap: 16px;
+}
+
+.studio-education-date {
+  margin: 2px 0 0;
+  color: var(--color-ink-soft);
+  font-size: 0.75rem;
+  line-height: 1.5;
+}
+
+.studio-education-item h4 {
+  margin: 0;
+  font-size: 0.97rem;
+  font-weight: 700;
+}
+
+.studio-education-item p:last-child {
+  margin: 5px 0 0;
+  color: var(--color-ink-soft);
+  font-size: 0.9rem;
+  line-height: 1.6;
+}
+
 .studio-process {
   display: grid;
   gap: 0;
