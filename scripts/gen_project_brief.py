@@ -95,20 +95,33 @@ def parse_stack() -> list[str]:
 
 
 def parse_deployment() -> list[str]:
-    """Extract the ``## Deployment summary`` section verbatim from the notes.
+    """Extract the deployment summary bullet list from the notes.
 
-    Returns the non-empty lines of that section (bullets included) up to the
-    next heading, or an empty list when the notes or the section are missing.
+    Returns one row per deployment bullet, preserving wrapped continuation
+    lines inside the same bullet and ignoring explanatory prose before the list.
     """
     lines = _read(DEPLOYMENT_PATH).splitlines()
     for index, line in enumerate(lines):
         if line.strip() == DEPLOYMENT_HEADING:
-            collected = []
+            collected: list[str] = []
+            current: list[str] = []
             for candidate in lines[index + 1 :]:
                 if candidate.startswith("## "):
                     break
-                if candidate.strip():
-                    collected.append(candidate.rstrip())
+                stripped = candidate.strip()
+                if not stripped:
+                    if current:
+                        collected.append(" ".join(current))
+                        current = []
+                    continue
+                if candidate.startswith("- "):
+                    if current:
+                        collected.append(" ".join(current))
+                    current = [stripped]
+                elif current and candidate.startswith("  "):
+                    current.append(stripped)
+            if current:
+                collected.append(" ".join(current))
             return collected
     return []
 
