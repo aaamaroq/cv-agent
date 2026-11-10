@@ -15,7 +15,7 @@ from pydantic import BaseModel, Field
 
 INPUT_VERDICTS = ("ok", "loaded", "abuse", "injection")
 _AI_ENGINEERING_QUESTION = re.compile(
-    r"\b(?:AI\s+engineer(?:ing)?|ingenier[ií]a\s+de\s+IA|"
+    r"\b(?:(?:AI|GenAI)\s+engineer(?:ing)?|ingenier[ií]a\s+de\s+IA|"
     r"ingeniero(?:a)?\s+de\s+IA)\b",
     re.IGNORECASE,
 )
@@ -237,14 +237,18 @@ def fallback_message(question: str) -> str:
             )
         if is_spanish:
             return (
-                "La experiencia profesional de Adrián incluye servidores MCP "
-                "para flujos empresariales con LLMs y procesamiento de datos con "
-                "Spark; el chatbot con LangGraph y OpenRouter es un proyecto personal."
+                "Adrián aporta experiencia profesional en backend distribuido e "
+                "ingeniería de datos, además de su contribución a servidores MCP "
+                "para flujos empresariales con LLMs. Su chatbot con LangGraph y "
+                "OpenRouter es un proyecto personal; las fuentes no documentan "
+                "entregas profesionales de GenAI en producción."
             )
         return (
-            "Adrián's professional experience includes MCP servers for "
-            "enterprise LLM workflows and data processing with Spark; his "
-            "LangGraph and OpenRouter chatbot is a personal project."
+            "Adrián brings professional experience in distributed backend and "
+            "data engineering, alongside his contribution to MCP servers for "
+            "enterprise LLM workflows. His LangGraph and OpenRouter chatbot is "
+            "a personal project; the sources do not document GenAI delivery in "
+            "production."
         )
     if is_spanish:
         return FALLBACK_MESSAGE_ES
@@ -259,10 +263,11 @@ RETRY_NOTE = (
     "infer AI use from data processing or production deployment from the MCP "
     "work or a project in the repository. If the sources do not mention the "
     "requested detail, say so briefly instead of guessing. Answer in the "
-    "user's language and for AI Engineering hiring questions, lead with the "
-    "documented LLM work (the professional MCP servers and the portfolio "
-    "chatbot) and relevant data experience; mention backend only when "
-    "directly relevant. "
+    "user's language. For AI Engineering hiring questions, select evidence in "
+    "proportion to the question and its documented scope. Lead with relevant "
+    "professional backend/data experience where appropriate, distinguish the "
+    "professional MCP contribution from the personal portfolio chatbot, and do "
+    "not let MCP or one project dominate a general fit answer. "
     "Do not infer project-specific MCP features from what the protocol can "
     "generally do. The CV documents enterprise LLM workflows only; do not add "
     "a client, sector, data source, access pattern, deployment detail, or "
@@ -421,9 +426,11 @@ Set ok=false ONLY if the reply clearly:
 - answers a focused question in more than two sentences without a clear need, \
   or lists general-purpose programming skills in an AI-fit answer when they \
   were not requested;
-- for recruiter questions about an AI Engineering role, leads with unrelated \
-  backend details instead of the documented LLM evidence (the professional \
-  MCP work and the portfolio chatbot) or relevant data experience;
+- presents MCP as Adrián's defining or sustained specialization, or leads a \
+    general AI-role introduction with MCP solely because its keywords match;
+- for recruiter questions about an AI Engineering role, fails to select the \
+    most relevant documented evidence while keeping professional and personal \
+    project experience distinct;
 - answers in a different language from the user's question, or impersonates \
   Adrián by speaking as if the assistant were the candidate;
 - inserts English prose into a Spanish reply, except for proper names and \

@@ -1,5 +1,14 @@
 import { useEffect, useRef, useState } from 'react'
 import Markdown from 'react-markdown'
+import remarkGfm from 'remark-gfm'
+
+const MARKDOWN_COMPONENTS = {
+  table: ({ children }) => (
+    <div className="studio-markdown-table">
+      <table>{children}</table>
+    </div>
+  ),
+}
 
 const COPY = {
   es: {
@@ -189,7 +198,7 @@ export default function Chat({ language, profile, profileId }) {
         <header className="studio-chat-heading">
           <div className="studio-chat-title-group">
             <h1 id="chat-title">{heading}</h1>
-            <p>{description}</p>
+            <Markdown remarkPlugins={[remarkGfm]}>{description}</Markdown>
           </div>
         </header>
 
@@ -242,7 +251,13 @@ export default function Chat({ language, profile, profileId }) {
               </h2>
               {message.role === 'assistant' ? (
                 <div className="studio-message-content">
-                  {message.content ? <Markdown>{message.content}</Markdown> : <Loading copy={copy} />}
+                  {message.content ? (
+                    <Markdown remarkPlugins={[remarkGfm]} components={MARKDOWN_COMPONENTS}>
+                      {message.content}
+                    </Markdown>
+                  ) : (
+                    <Loading copy={copy} />
+                  )}
                 </div>
               ) : (
                 <p className="studio-message-content">{message.content}</p>
