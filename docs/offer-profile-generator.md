@@ -46,7 +46,18 @@ Generate two separate outputs:
 
 The profile is recruiter-facing and value-oriented. The CV is application-ready and presentation-ready. A standalone `profile.md` is not required unless explicitly requested; do not create one by default.
 
-### 3) Profiling rule
+### 3) JSON generation contract
+
+When writing the profile JSON, keep the fields aligned to the actual role story:
+
+- `welcome`: app intro only; 1 sentence, no greeting, and no overlap with `positioning`.
+- `positioning`: introduce Adrián and the portfolio; lead with documented professional experience, not a project pitch.
+- `questions`: exactly 3 recruiter-facing prompts in the target language.
+- `requirements`: map cleanly to the offer; include required/preferred priority and keep `offer_quote` grounded in the job text.
+- `evidence`: cite only repo-backed proof; do not invent employers, titles, clients, metrics, or deployment details.
+- Keep `company_name` and `target_role` aligned with the profile slug and job language.
+
+### 4) Profiling rule
 
 The profile should answer:
 
@@ -56,7 +67,7 @@ The profile should answer:
 
 Lead with documented professional experience. Use the portfolio or personal projects as supporting evidence, not as the main proof of employment.
 
-### 4) Keep it brief and direct
+### 5) Keep it brief and direct
 
 Prefer short, clear sections and confident language.
 
@@ -68,7 +79,7 @@ Prefer short, clear sections and confident language.
 
 Do not write long generic intros or long project essays.
 
-### 5) Evidence-first rules
+### 6) Evidence-first rules
 
 - Reframe existing evidence; do not invent it.
 - Distinguish professional work from personal portfolio work.
@@ -77,7 +88,7 @@ Do not write long generic intros or long project essays.
 - Do not claim a role match or hiring decision without evidence.
 - Do not over-weight a personal project just because the terminology matches the role.
 
-### 6) Portfolio links
+### 7) Portfolio links
 
 When the output mentions the portfolio or project context, include the relevant link.
 
@@ -93,7 +104,7 @@ Examples:
 - `https://webcv-agent.vercel.app/`
 - `https://github.com/aaamaroq`
 
-### 7) PDF requirement
+### 8) PDF requirement
 
 The final CV must be a PDF for real application use.
 
