@@ -8,12 +8,12 @@ const COPY = {
     location: 'Madrid',
     bannerAlt: 'Paisaje panorámico pintado de un camino entre campos y árboles.',
     linkedIn: 'LinkedIn',
-    introduction: 'Ingeniero de software con más de tres años de experiencia en integración de LLM, pipelines de datos y sistemas backend distribuidos.',
+    introduction: 'Ingeniero de software con más de tres años de experiencia en backend distribuido y pipelines de datos. También desarrolla proyectos personales de GenAI con LangGraph.',
     experience: 'Experiencia',
     trcRole:
       'Servicios backend con Spring Boot y flujos asíncronos en sistemas distribuidos.',
     role41ops:
-      'Servidores MCP para flujos de trabajo empresariales con LLMs, microservicios con Java y Spring Boot, y procesamiento de datos con Spark.',
+      'Microservicios con Java y Spring Boot, procesamiento de datos con Spark y servidores MCP para flujos empresariales con LLMs.',
     siCongresosRole:
       'Servicios backend con Spring Boot, aplicaciones web y mantenimiento y migración de sistemas.',
     skills: 'Áreas de trabajo',
@@ -59,6 +59,7 @@ const COPY = {
     moreInfo: 'Más información sobre Adrián y el asistente',
     contact: 'Contacto',
     projectLink: 'GitHub',
+    repositoryLink: 'Código fuente del asistente',
     footerNote: 'Perfil profesional basado en el CV de Adrián.',
     profileLoading: 'Preparando esta versión del portfolio…',
     profileNotFound: 'No encontramos este perfil personalizado.',
@@ -71,12 +72,12 @@ const COPY = {
     location: 'Madrid',
     bannerAlt: 'Panoramic painted landscape of a path between fields and trees.',
     linkedIn: 'LinkedIn',
-    introduction: 'Software engineer with 3+ years of experience across LLM integration, data pipelines, and distributed backend systems.',
+    introduction: 'Software engineer with 3+ years of experience in distributed backend systems and data pipelines. Also builds personal GenAI projects with LangGraph.',
     experience: 'Experience',
     trcRole:
       'Spring Boot backend services and asynchronous workflows in distributed systems.',
     role41ops:
-      'MCP servers for enterprise LLM workflows, Java and Spring Boot microservices, and data processing with Spark.',
+      'Java and Spring Boot microservices, data processing with Spark, and MCP servers for enterprise LLM workflows.',
     siCongresosRole:
       'Spring Boot backend services, web applications, and system maintenance and migration.',
     skills: 'Areas of work',
@@ -122,6 +123,7 @@ const COPY = {
     moreInfo: 'More about Adrián and the assistant',
     contact: 'Contact',
     projectLink: 'GitHub',
+    repositoryLink: 'Assistant source code',
     footerNote: "Professional profile based on Adrián's CV.",
     profileLoading: 'Preparing this portfolio…',
     profileNotFound: 'This personalized profile could not be found.',
@@ -432,6 +434,11 @@ export default function App() {
                 ))}
               </ol>
               <p className="studio-flow-disclaimer">{copy.flowDisclaimer}</p>
+              <p>
+                <a href="https://github.com/aaamaroq/cv-agent" target="_blank" rel="noreferrer">
+                  {copy.repositoryLink}
+                </a>
+              </p>
               <div className="studio-tech-grid">
                 <section>
                   <h3>{copy.stackTitle}</h3>

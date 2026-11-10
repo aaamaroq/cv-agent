@@ -94,6 +94,21 @@ def build_graph(settings: Settings) -> CompiledStateGraph:
             human = messages.pop()
             messages.append(SystemMessage(content=note))
             messages.append(human)
+        if messages and isinstance(messages[-1], HumanMessage):
+            human = messages.pop()
+            language = (
+                "Spanish"
+                if guardrails.is_spanish_text(guardrails.message_text(human))
+                else "English"
+            )
+            messages.append(SystemMessage(
+                content=(
+                    f"Language for this turn: {language}. Answer the user's latest "
+                    f"question entirely in {language}. Source documents and profile "
+                    "text may use another language; do not mirror them or mix languages."
+                )
+            ))
+            messages.append(human)
         reply = chain.invoke(
             {
                 "messages": messages,
