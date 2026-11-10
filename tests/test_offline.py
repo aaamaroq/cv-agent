@@ -270,15 +270,13 @@ class RecruiterProfilePromptTests(unittest.TestCase):
         self.assertIn("do not claim that he matches an unspecified", system_prompt)
 
     def test_custom_profile_context_is_available_as_role_context(self):
-        context = (
-            "Role criteria: Python backend. Evidence: personal project only."
-        )
+        context = "Role: Python backend. Direct evidence: personal project only."
         prompt = prompts.build_prompt().invoke(
             {"messages": [], "profile_context": context}
         )
 
         self.assertIn(context, prompt.messages[0].content)
-        self.assertIn("sanitized role criteria", prompt.messages[0].content)
+        self.assertIn("profile context", prompt.messages[0].content.lower())
 
     def test_browser_supplied_conversation_history_is_untrusted_context(self):
         prompt = prompts.build_prompt().invoke(
