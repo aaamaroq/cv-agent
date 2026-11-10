@@ -23,6 +23,7 @@ ROOT = Path(__file__).resolve().parents[1]
 sys.path.insert(0, str(ROOT / "src"))
 
 from cv_chat.config import get_settings  # noqa: E402
+from cv_chat.guardrails import is_spanish_text  # noqa: E402
 from cv_chat.prompts import load_cv, load_project_notes  # noqa: E402
 from cv_chat.profiles import PROFILES_DIR  # noqa: E402
 
@@ -32,6 +33,30 @@ NEGATIVE_STARTER_RE = re.compile(
     r"\b(?:weakness(?:es)?|gaps?|missing|lack(?:ing)?|shortfall(?:s)?|"
     r"downside(?:s)?|drawback(?:s)?|debilidad(?:es)?|carencia(?:s)?|"
     r"falta(?:n)?|punto débil|puntos débiles|brecha(?:s)?)\b",
+    re.IGNORECASE,
+)
+PROFESSIONAL_FIT_RE = re.compile(
+    r"\b(?:backend|distributed(?: systems)?|data pipelines|data engineering|"
+    r"software engineer|cloud deployment|platform engineering|systems engineering|"
+    r"API|microservices|data processing|ingenier[oa] de software|"
+    r"sistemas distribuidos|pipelines? de datos|ingenier[ií]a de datos|"
+    r"despliegue cloud|ingenier[ií]a de plataformas|microservicios|"
+    r"procesamiento de datos)\b",
+    re.IGNORECASE,
+)
+AI_READINESS_RE = re.compile(
+    r"\b(?:AI|GenAI|LLM|language model|LangGraph|RAG|guardrails|evaluation|"
+    r"retrieval|agentic|prompt design|model|IA|inteligencia artificial|"
+    r"modelos? de lenguaje|evaluaci[oó]n|recuperaci[oó]n)\b",
+    re.IGNORECASE,
+)
+PROJECT_LEAD_RE = re.compile(
+    r"^\s*(?:mcp|langgraph|chatbot|personal project|project|prototype)\b",
+    re.IGNORECASE,
+)
+GENERIC_QUESTION_RE = re.compile(
+    r"\b(?:what technologies|qué tecnologías|what projects|qué proyectos|"
+    r"in general|en general|generally|overall|general overview|resumen general)\b",
     re.IGNORECASE,
 )
 
@@ -113,17 +138,41 @@ for transferable evidence; use `listed_only` for skills-list mentions and
 `training_only` for courses. Do not treat a skill or course as work experience.
 It is valid for a criterion to have no mapped evidence. Never invent a quote,
 customer usage, production deployment, outcome, metric, or level of ownership.
+Calibrate prominence to the breadth and depth of documented evidence. Do not
+make one project dominate positioning solely because its terminology matches
+the offer; balance it with broader experience and other relevant projects. Do
+not imply sustained specialization or production delivery unless the sources
+establish it.
 
 Write a concise, factual introduction in Spanish and English that presents
-Adrián first as a software engineer and summarizes broad experience areas. Keep
-it personal and approachable; do not open with a list of offer-specific
-technologies. Do not claim that all requirements are met or recommend a hiring decision.
-Write exactly three suggested questions in each language: one about why the
-documented experience relates to the role, one about relevant professional
-experience, and one about relevant capabilities or projects. Do not suggest a
-question focused on weaknesses, gaps, or missing skills. Do not include raw offer
-text or identifying company details in those questions. Return structured data
-only."""
+Adrián first as a software engineer with strong documented experience in
+backend/data engineering, distributed systems and production-oriented software
+work. Then connect that foundation to AI/LLM readiness and the role's
+requirements. Keep it personal and approachable; do not open with MCP,
+LangGraph, a chatbot, or a personal-project pitch as the main story. The
+introduction must read as a value proposition for the target company: explain
+who Adrián is, what relevant experience he brings, and what he can contribute
+to the team or business, while staying grounded in the source evidence. The
+profile should feel like a recruiter-facing applicant pitch, not a neutral
+project summary. Frame the message around “why is Adrián prepared for this
+role?” and “what can he contribute to this company or team?”, not just “what
+is he working on?” When describing fit, lead with the strongest professional
+backend/data evidence and treat the GenAI work as supporting evidence, not the
+whole story. Do not claim that all requirements are met or recommend a hiring
+decision. If the profile is being shared with a recruiter, explicitly invite
+them to review the tailored portfolio or offer-specific profile link for
+additional context. Keep professional experience and personal portfolio work
+clearly distinct. Do not invent customer deployments, domain integrations,
+industrial environments, or company-specific claims that the sources do not
+document.
+Write exactly three suggested questions in each language that directly answer
+recruiter fit questions such as: why Adrián is prepared for this role, what
+experience connects to the offer, and what value he can bring to the team. They
+must sound like HR/recruiter questions about fit, relevance, and contribution,
+not generic questions about technologies, career history, or project lists. Do
+not suggest a question focused on weaknesses, gaps, or missing skills. Do not
+include raw offer text or identifying company details in those questions. Return
+structured data only."""
 
 
 def _normalise(text: str) -> str:
@@ -160,14 +209,44 @@ def validate_draft(
         raise ValueError("The generated profile must contain exactly 3 questions per language")
     if not 1 <= len(draft.evidence) <= 16:
         raise ValueError("The generated profile must contain between 1 and 16 evidence items")
-    questions = draft.questions_es + draft.questions_en
-    for question in questions:
-        if NEGATIVE_STARTER_RE.search(question.label) or NEGATIVE_STARTER_RE.search(
-            question.question
-        ):
+    for language, questions in (
+        ("Spanish", draft.questions_es),
+        ("English", draft.questions_en),
+    ):
+        for question in questions:
+            if is_spanish_text(question.question) != (language == "Spanish"):
+                raise ValueError(f"Suggested questions must be written in {language}")
+            if NEGATIVE_STARTER_RE.search(question.label) or NEGATIVE_STARTER_RE.search(
+                question.question
+            ):
+                raise ValueError(
+                    "Suggested questions must invite evidence about role-relevant "
+                    "experience, not focus on weaknesses or gaps"
+                )
+            question_text = f"{question.label} {question.question}"
+            if GENERIC_QUESTION_RE.search(question_text):
+                raise ValueError(
+                    "Suggested questions must answer recruiter fit and offer relevance, "
+                    "not generic background prompts"
+                )
+
+    for field_name, text in {
+        "positioning_es": draft.positioning_es,
+        "positioning_en": draft.positioning_en,
+    }.items():
+        if PROJECT_LEAD_RE.match(text):
             raise ValueError(
-                "Suggested questions must invite evidence about role-relevant "
-                "experience, not focus on weaknesses or gaps"
+                "Positioning must lead with documented backend or data experience and "
+                "then connect it to AI/LLM work, not with MCP or a personal-project lead"
+            )
+        if not PROFESSIONAL_FIT_RE.search(text):
+            raise ValueError(
+                f"{field_name} must lead with documented backend or data experience "
+                "before connecting it to AI/LLM work"
+            )
+        if not AI_READINESS_RE.search(text):
+            raise ValueError(
+                f"{field_name} must connect the candidate's professional experience to AI/LLM readiness"
             )
 
     offer_text = _normalise(offer)
@@ -247,6 +326,7 @@ def build_profile_document(
         for item in draft.requirements
     ]
     evidence = [item.model_dump() for item in draft.evidence]
+    portfolio_url = f"https://webcv-agent.vercel.app/p/{profile_id}"
     return {
         "id": profile_id,
         "company_name": company_name,
@@ -255,8 +335,14 @@ def build_profile_document(
         "requirements": requirements,
         "evidence": evidence,
         "positioning": {
-            "es": draft.positioning_es,
-            "en": draft.positioning_en,
+            "es": (
+                f"{draft.positioning_es}\n\nRevisa el perfil personalizado para "
+                f"esta oferta: [portfolio de Adrián]({portfolio_url})."
+            ),
+            "en": (
+                f"{draft.positioning_en}\n\nReview the tailored profile for this "
+                f"role: [Adrián's portfolio]({portfolio_url})."
+            ),
         },
         "welcome": {
             "es": (
