@@ -45,49 +45,45 @@ class RecruiterProfile:
                 return ""
             themes = ", ".join(self.themes)
             return (
-                f"Prioritize documented CV or project evidence relevant to these "
-                f"offer themes: {themes}. The themes are relevance guidance only, "
-                "not evidence about Adrián or the company. They do not define "
-                "the role's full requirements or establish a candidate match."
+                "Role focus: "
+                f"{themes}. "
+                "Use these as relevance cues only; they are not evidence about Adrián or the company. "
+                "Do not infer a full match from the themes alone."
             )
 
-        requirements = "\n".join(
-            f"- [{item['priority']}] {item['id']}: {item['description']}"
-            for item in self.requirements
-        )
         evidence_by_requirement: dict[str, list[str]] = {}
         for item in self.evidence:
             evidence_by_requirement.setdefault(item["requirement_id"], []).append(
-                f"  - {item['evidence_type']} ({item['relation']}; {item['source']}): "
-                f"{item['quote']}"
+                f"{item['evidence_type']} ({item['relation']}; {item['source']}): {item['quote']}"
             )
-        evidence = "\n".join(
-            f"- {requirement['id']}:\n"
-            + "\n".join(evidence_by_requirement.get(requirement["id"], ["  - No mapped evidence."]))
-            for requirement in self.requirements
-        )
+
+        direct_evidence: list[str] = []
+        related_evidence: list[str] = []
+        unknowns: list[str] = []
+        for requirement in self.requirements:
+            requirement_id = requirement["id"]
+            mapped = evidence_by_requirement.get(requirement_id, [])
+            if not mapped:
+                unknowns.append(requirement_id)
+                continue
+            if any("direct" in entry.lower() for entry in mapped):
+                direct_evidence.append(requirement_id)
+            else:
+                related_evidence.append(requirement_id)
+
+        direct_summary = ", ".join(sorted(set(direct_evidence))) or "none mapped"
+        related_summary = ", ".join(sorted(set(related_evidence))) or "none mapped"
+        unknown_summary = ", ".join(sorted(set(unknowns))) or "none flagged"
+
+        focus = ", ".join(self.themes) if self.themes else "general portfolio"
         return (
-            f"Customized recruiter profile for {self.target_role or 'the target role'}.\n"
-            "The role criteria below are sanitized descriptions of the offer, not "
-            "facts about Adrián. The evidence map contains curated pointers to "
-            "verbatim CV/project excerpts; verify any candidate claim against the "
-            "source of truth above. 'Professional experience', 'personal project', "
-            "'training', and 'listed skill' are distinct evidence types. 'Related' "
-            "means transferable, not proof of the exact requirement.\n"
-            "Role criteria:\n"
-            f"{requirements}\n"
-            "Mapped evidence:\n"
-            f"{evidence}\n"
-            "When directly asked about fit, compare the most relevant documented "
-            "evidence with these criteria. Lead with the strongest professional "
-            "evidence; use personal projects as complementary evidence and label "
-            "them clearly. Do not present related, training, or listed-skill "
-            "evidence as direct professional experience. Do not claim that every "
-            "requirement is met or make a final hiring decision. Mention an "
-            "unverified required criterion only when it materially qualifies a "
-            "direct fit assessment or the recruiter asks about it; say the sources "
-            "do not specify it, rather than asserting the experience does not exist. "
-            "Do not volunteer a list of weaknesses."
+            f"Role: {self.target_role or 'target role'}.\n"
+            f"Focus: {focus}.\n"
+            f"Direct evidence: {direct_summary}.\n"
+            f"Related evidence: {related_summary}.\n"
+            f"Unknowns: {unknown_summary}.\n"
+            "Guidance: lead with direct evidence, keep personal projects separate from professional experience, "
+            "label transferability clearly, and say when a requirement is not documented instead of inferring a negative."
         )
 
 
