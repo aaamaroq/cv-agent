@@ -319,10 +319,10 @@ class LanguageDetectionTests(unittest.TestCase):
             "Why is Adrián prepared for this GenAI engineering role?"
         )
 
-        self.assertTrue(answer.startswith("Adrián brings professional experience"))
+        self.assertTrue(answer.startswith("Adrián's professional experience includes"))
         self.assertIn("MCP servers", answer)
-        self.assertIn("personal", answer)
-        self.assertIn("do not document GenAI delivery", answer)
+        self.assertIn("data processing with Spark", answer)
+        self.assertIn("personal project", answer)
         self.assertNotEqual(answer, guardrails.FALLBACK_MESSAGE)
 
     def test_fallback_distinguishes_kafka_skill_from_spark_pipeline(self):
