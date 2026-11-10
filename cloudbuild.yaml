@@ -1,0 +1,63 @@
+steps:
+  # 1. Construir imagensteps:
+  # 1. Construir imagen
+  - name: 'gcr.io/cloud-builders/docker'
+    args:
+      - 'build'
+      - '-f'
+      - 'Dockerfile.backend'
+      - '-t'
+      - 'europe-west1-docker.pkg.dev/$PROJECT_ID/backend-cv-agent/cv-chat:$COMMIT_SHA'
+      - '.'
+
+  # 2. Publicar imagen
+  - name: 'gcr.io/cloud-builders/docker'
+    args:
+      - 'push'
+      - 'europe-west1-docker.pkg.dev/$PROJECT_ID/backend-cv-agent/cv-chat:$COMMIT_SHA'
+
+  # 3. Desplegar en Cloud Run
+  - name: 'gcr.io/google.com/cloudsdktool/cloud-sdk'
+    entrypoint: 'gcloud'
+    args:
+      - 'run'
+      - 'deploy'
+      - 'cv-chat-api'
+      - '--image=europe-west1-docker.pkg.dev/$PROJECT_ID/backend-cv-agent/cv-chat:$COMMIT_SHA'
+      - '--region=europe-west1'
+
+images:
+  - 'europe-west1-docker.pkg.dev/$PROJECT_ID/backend-cv-agent/cv-chat:$COMMIT_SHA'
+
+options:
+  logging: CLOUD_LOGGING_ONLY
+  - name: 'gcr.io/cloud-builders/docker'
+    args:
+      - 'build'
+      - '-f'
+      - 'Dockerfile.backend'
+      - '-t'
+      - 'europe-west1-docker.pkg.dev/$PROJECT_ID/backend-cv-agent/cv-chat:$COMMIT_SHA'
+      - '.'
+
+  # 2. Publicar imagen
+  - name: 'gcr.io/cloud-builders/docker'
+    args:
+      - 'push'
+      - 'europe-west1-docker.pkg.dev/$PROJECT_ID/backend-cv-agent/cv-chat:$COMMIT_SHA'
+
+  # 3. Desplegar en Cloud Run
+  - name: 'gcr.io/google.com/cloudsdktool/cloud-sdk'
+    entrypoint: 'gcloud'
+    args:
+      - 'run'
+      - 'deploy'
+      - 'cv-chat-api'
+      - '--image=europe-west1-docker.pkg.dev/$PROJECT_ID/backend-cv-agent/cv-chat:$COMMIT_SHA'
+      - '--region=europe-west1'
+
+images:
+  - 'europe-west1-docker.pkg.dev/$PROJECT_ID/backend-cv-agent/cv-chat:$COMMIT_SHA'
+
+options:
+  logging: CLOUD_LOGGING_ONLY
